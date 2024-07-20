@@ -71,7 +71,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-epochs = 1
+epochs = 3
 
 if os.path.exists('models'):
     ckpt_path = "/models/finetuned_stable_diffusion.h5"
@@ -86,7 +86,7 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
     monitor="loss",
     mode="min",
     save_best_only=True,
-    save_freq=100  # Save every 100 batches
+    save_freq='epoch' 
 )
 
 diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[ckpt_callback])
