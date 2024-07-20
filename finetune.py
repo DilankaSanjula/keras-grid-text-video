@@ -80,7 +80,6 @@ if os.path.exists('/content/drive/MyDrive/models'):
     ckpt_path = '/content/drive/MyDrive/models/finetuned_stable_diffusion.h5'
 
 
-ckpt_path = "finetuned_stable_diffusion.h5"
 ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
     ckpt_path,
     save_weights_only=True,
