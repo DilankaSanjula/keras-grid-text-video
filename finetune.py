@@ -18,7 +18,7 @@ RESOLUTION = 512
 USE_MP = True
 
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = 'webvid10m_dataset/4x4_grid_images'
+directory = '/content/drive/MyDrive/4x4_grid_images'
 
 lr = 1e-5
 beta_1, beta_2 = 0.9, 0.999
