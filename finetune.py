@@ -71,7 +71,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-epochs = 3
+epochs = 100
 
 if os.path.exists('models'):
     ckpt_path = "/models/finetuned_stable_diffusion.h5"
