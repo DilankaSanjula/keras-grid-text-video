@@ -47,6 +47,20 @@ save_sample_batch_images(sample_batch, dataset_visualize_image_path)
 
 
 # Utilize trainer class for finetuning
+class DynamicCheckpoint(tf.keras.callbacks.Callback):
+    def __init__(self, ckpt_dir, save_freq):
+        super(DynamicCheckpoint, self).__init__()
+        self.ckpt_dir = ckpt_dir
+        self.save_freq = save_freq
+
+    def on_batch_end(self, batch, logs=None):
+        total_steps = self.model.optimizer.iterations.numpy()
+        if total_steps % self.save_freq == 0:
+            epoch = self.params['epochs']
+            step = total_steps
+            filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch{epoch}_step{step}.h5')
+            self.model.save_weights(filepath)
+            print(f'Saving checkpoint at epoch {epoch}, step {step}: {filepath}')
 
 if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
@@ -71,28 +85,31 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-epochs = 100
+epochs = 10
 
 if os.path.exists('models'):
-    ckpt_path = "/models/finetuned_stable_diffusion.h5"
+    ckpt_path = "/models"
 
 if os.path.exists('/content/drive/MyDrive/models'):
-    ckpt_path = '/content/drive/MyDrive/models/finetuned_stable_diffusion.h5'
+    ckpt_path = '/content/drive/MyDrive/models'
 
-# Check if checkpoint path is set and if the file exists
+model_path = os.path.join(ckpt_path, 'finetuned_stable_diffusion.h5')
+
 if ckpt_path and os.path.exists(ckpt_path):
     # Load the model weights from the checkpoint
-    diffusion_ft_trainer.load_weights(ckpt_path)
+    diffusion_ft_trainer.load_weights(model_path)
     print(f"Checkpoint loaded from {ckpt_path}")
     
-ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-    ckpt_path,
-    save_weights_only=True,
-    monitor="loss",
-    mode="min",
-    save_freq=500
-)
+# ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
+#     ckpt_path,
+#     save_weights_only=True,
+#     monitor="loss",
+#     mode="min",
+#     save_freq=500
+# )
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[ckpt_callback])
+dynamic_ckpt_callback = DynamicCheckpoint(ckpt_dir=ckpt_path , save_freq=500)
+
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[dynamic_ckpt_callback])
 
 
