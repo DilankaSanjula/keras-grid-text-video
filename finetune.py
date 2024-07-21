@@ -96,22 +96,8 @@ if os.path.exists('/content/drive/MyDrive/models'):
 model_path = os.path.join(ckpt_path, 'finetuned_stable_diffusion.h5')
 
 # Build the model by running some data through it
-diffusion_ft_trainer.fit(training_dataset.take(1), epochs=1)
-diffusion_ft_trainer.reset_metrics()
-
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
-print("\n")
+dummy_data = next(iter(training_dataset))
+diffusion_ft_trainer(dummy_data)  # This ensures the model variables are created
 
 if ckpt_path and os.path.exists(model_path):
     # Load the model weights from the checkpoint
