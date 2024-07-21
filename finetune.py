@@ -95,21 +95,15 @@ if os.path.exists('/content/drive/MyDrive/models'):
 
 model_path = os.path.join(ckpt_path, 'finetuned_stable_diffusion.h5')
 
-if ckpt_path and os.path.exists(ckpt_path):
+# Build the model by running some data through it
+diffusion_ft_trainer.fit(training_dataset.take(1), epochs=1)
+diffusion_ft_trainer.reset_metrics()
+
+if ckpt_path and os.path.exists(model_path):
     # Load the model weights from the checkpoint
     diffusion_ft_trainer.load_weights(model_path)
     print(f"Checkpoint loaded from {ckpt_path}")
-    
-# ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-#     ckpt_path,
-#     save_weights_only=True,
-#     monitor="loss",
-#     mode="min",
-#     save_freq=500
-# )
 
-dynamic_ckpt_callback = DynamicCheckpoint(ckpt_dir=ckpt_path , save_freq=500)
+dynamic_ckpt_callback = DynamicCheckpoint(ckpt_dir=ckpt_path, save_freq=500)
 
 diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[dynamic_ckpt_callback])
-
-
