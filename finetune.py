@@ -99,6 +99,20 @@ model_path = os.path.join(ckpt_path, 'finetuned_stable_diffusion.h5')
 diffusion_ft_trainer.fit(training_dataset.take(1), epochs=1)
 diffusion_ft_trainer.reset_metrics()
 
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+
 if ckpt_path and os.path.exists(model_path):
     # Load the model weights from the checkpoint
     diffusion_ft_trainer.load_weights(model_path)
