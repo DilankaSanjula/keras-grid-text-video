@@ -25,7 +25,7 @@ beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
 
-# Create the dataframe
+
 data_frame = create_dataframe(directory)
 
 # Collate the tokenized captions into an array.
@@ -44,6 +44,7 @@ for k in sample_batch:
     print(k, sample_batch[k].shape)
 
 save_sample_batch_images(sample_batch, dataset_visualize_image_path)
+
 
 # Utilize trainer class for finetuning
 class DynamicCheckpoint(tf.keras.callbacks.Callback):
@@ -65,17 +66,13 @@ if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
 
 image_encoder = ImageEncoder()
-diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
-vae = tf.keras.Model(
-    image_encoder.input,
-    image_encoder.layers[-2].output,
-)
-noise_scheduler = NoiseScheduler()
-
 diffusion_ft_trainer = Trainer(
-    diffusion_model=diffusion_model,
-    vae=vae,
-    noise_scheduler=noise_scheduler,
+    diffusion_model=DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH),
+    vae=tf.keras.Model(
+        image_encoder.input,
+        image_encoder.layers[-2].output,
+    ),
+    noise_scheduler=NoiseScheduler(),
     use_mixed_precision=USE_MP,
 )
 
@@ -91,23 +88,40 @@ diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 epochs = 10
 
 if os.path.exists('models'):
-    ckpt_path = "models"
-elif os.path.exists('/content/drive/MyDrive/models'):
+    ckpt_path = "/models"
+
+if os.path.exists('/content/drive/MyDrive/models'):
     ckpt_path = '/content/drive/MyDrive/models'
-else:
-    ckpt_path = 'models'
 
 model_path = os.path.join(ckpt_path, 'finetuned_stable_diffusion.h5')
 
 # Build the model by running some data through it
-dummy_data = {'images': sample_batch['images'], 'encoded_text': sample_batch['encoded_text']}
-diffusion_ft_trainer(dummy_data)  # This ensures the model variables are created
+diffusion_ft_trainer.fit(training_dataset.take(1), epochs=1)
+diffusion_ft_trainer.reset_metrics()
 
-if os.path.exists(model_path):
-    # Load the model weights from the checkpoint
-    diffusion_ft_trainer.load_weights(model_path)
-    print(f"Checkpoint loaded from {model_path}")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+print("\n")
+
+
 
 dynamic_ckpt_callback = DynamicCheckpoint(ckpt_dir=ckpt_path, save_freq=500)
+
+diffusion_ft_trainer.fit(training_dataset, epochs=1, steps_per_epoch=1)
+
+if ckpt_path and os.path.exists(model_path):
+    # Load the model weights from the checkpoint
+    diffusion_ft_trainer.load_weights(model_path)
+    print(f"Checkpoint loaded from {ckpt_path}")
 
 diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[dynamic_ckpt_callback])
