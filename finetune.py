@@ -82,7 +82,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 # Fine-tuning
-epochs = 10  # Adjust the number of epochs as needed
+epochs = 20  # Adjust the number of epochs as needed
 # ckpt_path = "/content/drive/MyDrive/models"
 # ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 #     ckpt_path,
