@@ -90,7 +90,7 @@ ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
     save_weights_only=True,
     monitor="loss",
     mode="min",
-    save_freq='epoch' 
+    save_freq=500
 )
 
 diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[ckpt_callback])
