@@ -83,12 +83,27 @@ diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 # Fine-tuning
 epochs = 10  # Adjust the number of epochs as needed
-ckpt_path = "finetuned_stable_diffusion.h5"
-ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-    ckpt_path,
-    save_weights_only=True,
-    monitor="loss",
-    mode="min",
-)
+# ckpt_path = "/content/drive/MyDrive/models"
+# ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
+#     ckpt_path,
+#     save_weights_only=True,
+#     monitor="loss",
+#     mode="min",
+# )
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[ckpt_callback])
+class CustomModelCheckpoint(tf.keras.callbacks.Callback):
+    def __init__(self, ckpt_dir):
+        super(CustomModelCheckpoint, self).__init__()
+        self.ckpt_dir = ckpt_dir
+
+    def on_epoch_end(self, epoch, logs=None):
+        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}.h5')
+        self.model.save_weights(filepath)
+        print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
+
+# Fine-tuning
+epochs = 10  # Adjust the number of epochs as needed
+ckpt_dir = '/content/drive/MyDrive/models'
+custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
+
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
