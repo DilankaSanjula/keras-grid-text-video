@@ -108,13 +108,22 @@ class Trainer(tf.keras.Model):
         return mean + std * sample
 
     def save_weights(self, filepath, overwrite=True, save_format=None, options=None):
-        # Overriding this method will allow us to use the `ModelCheckpoint`
-        # callback directly with this trainer class. In this case, it will
-        # only checkpoint the `diffusion_model` since that's what we're training
-        # during fine-tuning.
+        # Save the diffusion model's weights
+        diffusion_model_filepath = filepath + "_diffusion_model.h5"
         self.diffusion_model.save_weights(
-            filepath=filepath,
+            filepath=diffusion_model_filepath,
             overwrite=overwrite,
             save_format=save_format,
             options=options,
         )
+        print(f"Diffusion model weights saved to {diffusion_model_filepath}")
+
+        # Save the VAE's weights
+        vae_filepath = filepath + "_vae.h5"
+        self.vae.save_weights(
+            filepath=vae_filepath,
+            overwrite=overwrite,
+            save_format=save_format,
+            options=options,
+        )
+        print(f"VAE model weights saved to {vae_filepath}")

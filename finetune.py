@@ -21,6 +21,7 @@ USE_MP = True
 dataset_visualize_image_path = "sample_batch_images.png"
 directory = '/content/drive/MyDrive/webvid-10m-dataset/grid_images_1'
 pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
+pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
 lr = 1e-5
@@ -69,7 +70,12 @@ diffusion_ft_trainer = Trainer(
 # Load the pretrained weights
 if os.path.exists(pretrained_weights_path):
     diffusion_model.load_weights(pretrained_weights_path)
-    print(f"Pretrained weights loaded from {pretrained_weights_path}")
+    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+
+# Load the pretrained weights
+if os.path.exists(pretrained_weights_path):
+    vae.load_weights(pretrained_vae)
+    print(f"Pretrained vae weights loaded from {pretrained_vae}")
 
 # Compile the trainer
 optimizer = tf.keras.optimizers.experimental.AdamW(
@@ -97,12 +103,12 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         self.ckpt_dir = ckpt_dir
 
     def on_epoch_end(self, epoch, logs=None):
-        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_both_{epoch + 1}.h5')
+        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}')
         self.model.save_weights(filepath)
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 5  # Adjust the number of epochs as needed
+epochs = 8  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
