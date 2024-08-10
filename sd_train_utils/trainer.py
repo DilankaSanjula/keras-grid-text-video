@@ -35,7 +35,7 @@ class Trainer(tf.keras.Model):
         self.max_grad_norm = max_grad_norm
 
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False
+        self.vae.trainable = True
 
     def train_step(self, inputs):
         images = inputs["images"]
