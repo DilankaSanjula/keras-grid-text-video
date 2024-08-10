@@ -72,10 +72,12 @@ if os.path.exists(pretrained_weights_path):
     diffusion_model.load_weights(pretrained_weights_path)
     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
-# Load the pretrained weights
-if os.path.exists(pretrained_weights_path):
-    vae.load_weights(pretrained_vae)
-    print(f"Pretrained vae weights loaded from {pretrained_vae}")
+try:
+    if os.path.exists(pretrained_weights_path):
+        vae.load_weights(pretrained_vae)
+        print(f"Pretrained vae weights loaded from {pretrained_vae}")
+except Exception as exp:
+    print(exp)
 
 # Compile the trainer
 optimizer = tf.keras.optimizers.experimental.AdamW(
