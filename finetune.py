@@ -82,7 +82,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 # Fine-tuning
-epochs = 20  # Adjust the number of epochs as needed
+#epochs = 20  # Adjust the number of epochs as needed
 # ckpt_path = "/content/drive/MyDrive/models"
 # ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
 #     ckpt_path,
@@ -97,12 +97,12 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         self.ckpt_dir = ckpt_dir
 
     def on_epoch_end(self, epoch, logs=None):
-        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}.h5')
+        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_both_{epoch + 1}.h5')
         self.model.save_weights(filepath)
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 10  # Adjust the number of epochs as needed
+epochs = 5  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
