@@ -20,7 +20,7 @@ USE_MP = True
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
 directory = '/content/drive/MyDrive/webvid-10m-dataset/grid_images_1'
-pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_4.h5'
+pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
 
 # Learning Parameters
 lr = 1e-5
