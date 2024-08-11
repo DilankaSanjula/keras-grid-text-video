@@ -103,7 +103,7 @@ class Trainer(tf.keras.Model):
 
         # Update parameters of the diffusion model.
         #trainable_vars = self.diffusion_model.trainable_variables
-        trainable_vars = self.diffusion_model.trainable_variables
+        trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)
