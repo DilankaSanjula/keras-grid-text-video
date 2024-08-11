@@ -30,7 +30,7 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False  # Ensure VAE is trainable
+        self.vae.trainable = True  # Ensure VAE is trainable
         num_final_layers_to_train=20
         # Apply freezing strategy if needed
         # self.freeze_layers()
