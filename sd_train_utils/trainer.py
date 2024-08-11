@@ -22,7 +22,8 @@ class Trainer(tf.keras.Model):
         noise_scheduler,
         use_mixed_precision=True,
         max_grad_norm=1.0,
-        freeze_percentage=0.8,  # Percentage of layers to freeze
+        middle_layers_to_train=20,  # Number of middle layers to train
+        final_layers_to_train=10,   # Number of final layers to train
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -32,19 +33,35 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False
+        self.vae.trainable = False  # Ensure VAE is not trainable
 
-        # Freeze the first percentage of layers based on freeze_percentage
-        self.freeze_layers(freeze_percentage)
+        # Freeze all layers except the specified middle and final layers
+        self.freeze_layers(middle_layers_to_train, final_layers_to_train)
 
-    def freeze_layers(self, freeze_percentage):
-        """Freeze the first `freeze_percentage` of the layers in the diffusion model."""
+    def freeze_layers(self, middle_layers_to_train, final_layers_to_train):
+        """Freeze all layers except the specified middle and final layers."""
         total_layers = len(self.diffusion_model.layers)
-        layers_to_freeze = int(total_layers * freeze_percentage)
 
-        for i, layer in enumerate(self.diffusion_model.layers[:layers_to_freeze]):
+        # Calculate the start and end indices for middle layers
+        start_of_middle_layers = (total_layers // 2) - (middle_layers_to_train // 2)
+        end_of_middle_layers = start_of_middle_layers + middle_layers_to_train
+
+        # Freeze all layers initially
+        for layer in self.diffusion_model.layers:
             layer.trainable = False
-            print(f"Layer {i} ({layer.name}) frozen.")
+
+        # Unfreeze the middle layers
+        for layer in self.diffusion_model.layers[start_of_middle_layers:end_of_middle_layers]:
+            layer.trainable = True
+
+        # Unfreeze the final layers
+        for layer in self.diffusion_model.layers[-final_layers_to_train:]:
+            layer.trainable = True
+
+        # Optionally, print out which layers are trainable
+        for i, layer in enumerate(self.diffusion_model.layers):
+            print(f"Layer {i}: {layer.name}, Trainable: {layer.trainable}")
+
 
     def train_step(self, inputs):
         images = inputs["images"]
