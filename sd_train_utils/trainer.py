@@ -30,15 +30,28 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = True  # Ensure VAE is trainable
-
+        self.vae.trainable = False  # Ensure VAE is trainable
+        num_final_layers_to_train=20
         # Apply freezing strategy if needed
         # self.freeze_layers()
+        if num_final_layers_to_train is not None:
+            self.freeze_layers(num_final_layers_to_train)
 
-    def freeze_layers(self):
-        """Apply the freezing strategy."""
-        # This method can be used if you decide to freeze specific layers later on
-        # For now, we will keep everything trainable since you want to train both models
+    def freeze_layers(self, num_final_layers_to_train):
+        """Freeze all layers except the last `num_final_layers_to_train` layers in the diffusion model."""
+        total_layers = len(self.diffusion_model.layers)
+        layers_to_unfreeze = min(num_final_layers_to_train, total_layers)
+
+        # Freeze all layers initially
+        for layer in self.diffusion_model.layers:
+            layer.trainable = False
+
+        # Unfreeze the last `layers_to_unfreeze` layers
+        for layer in self.diffusion_model.layers[-layers_to_unfreeze:]:
+            layer.trainable = True
+
+        print(f"Unfroze the last {layers_to_unfreeze} out of {total_layers} layers in the diffusion model.")
+
 
     def train_step(self, inputs):
         images = inputs["images"]
