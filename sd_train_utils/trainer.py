@@ -35,7 +35,7 @@ class Trainer(tf.keras.Model):
         self.max_grad_norm = max_grad_norm
 
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = True
+        #self.vae.trainable = True
 
     def train_step(self, inputs):
         images = inputs["images"]
@@ -80,7 +80,8 @@ class Trainer(tf.keras.Model):
                 loss = self.optimizer.get_scaled_loss(loss)
 
         # Update parameters of the diffusion model.
-        trainable_vars = self.diffusion_model.trainable_variables
+        #trainable_vars = self.diffusion_model.trainable_variables
+        trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)

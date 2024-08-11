@@ -60,12 +60,7 @@ vae = tf.keras.Model(
 )
 noise_scheduler = NoiseScheduler()
 
-diffusion_ft_trainer = Trainer(
-    diffusion_model=diffusion_model,
-    vae=vae,
-    noise_scheduler=noise_scheduler,
-    use_mixed_precision=USE_MP,
-)
+
 
 # Load the pretrained weights
 if os.path.exists(pretrained_weights_path):
@@ -79,25 +74,6 @@ try:
 except Exception as exp:
     print(exp)
 
-# Compile the trainer
-optimizer = tf.keras.optimizers.experimental.AdamW(
-    learning_rate=lr,
-    weight_decay=weight_decay,
-    beta_1=beta_1,
-    beta_2=beta_2,
-    epsilon=epsilon,
-)
-diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-
-# Fine-tuning
-#epochs = 20  # Adjust the number of epochs as needed
-# ckpt_path = "/content/drive/MyDrive/models"
-# ckpt_callback = tf.keras.callbacks.ModelCheckpoint(
-#     ckpt_path,
-#     save_weights_only=True,
-#     monitor="loss",
-#     mode="min",
-# )
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
     def __init__(self, ckpt_dir):
@@ -113,5 +89,44 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 epochs = 8  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
+
+# Assuming 'diffusion_model' is your model
+layer_count = len(diffusion_model.layers)
+print(f"Total number of layers in the diffusion model: {layer_count}")
+
+# For the ImageEncoder part of your model
+layer_count = len(image_encoder.layers)
+print(f"Total number of layers in the image encoder: {layer_count}")
+
+# For the VAE part of your model
+layer_count = len(vae.layers)
+print(f"Total number of layers in the VAE: {layer_count}")
+
+# Freeze the first half of the layers
+for layer in diffusion_model.layers[:layer_count // 2]:
+    layer.trainable = False
+
+print("First half of the layers have been frozen.")
+
+
+
+diffusion_ft_trainer = Trainer(
+    diffusion_model=diffusion_model,
+    vae=vae,
+    noise_scheduler=noise_scheduler,
+    use_mixed_precision=USE_MP,
+)
+
+
+# Compile the trainer
+optimizer = tf.keras.optimizers.experimental.AdamW(
+    learning_rate=lr,
+    weight_decay=weight_decay,
+    beta_1=beta_1,
+    beta_2=beta_2,
+    epsilon=epsilon,
+)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
+
 
 diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
