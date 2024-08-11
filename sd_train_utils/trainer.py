@@ -132,7 +132,7 @@ class Trainer(tf.keras.Model):
 
     def save_weights(self, filepath, overwrite=True, save_format=None, options=None):
         # Save the diffusion model's weights
-        diffusion_model_filepath = filepath + "_diffusion_model_lr.h5"
+        diffusion_model_filepath = filepath + "_diffusion_model_small.h5"
         self.diffusion_model.save_weights(
             filepath=diffusion_model_filepath,
             overwrite=overwrite,
