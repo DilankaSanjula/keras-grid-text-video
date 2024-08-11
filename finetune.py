@@ -90,25 +90,6 @@ epochs = 8  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
-# Assuming 'diffusion_model' is your model
-layer_count = len(diffusion_model.layers)
-print(f"Total number of layers in the diffusion model: {layer_count}")
-
-# For the ImageEncoder part of your model
-layer_count = len(image_encoder.layers)
-print(f"Total number of layers in the image encoder: {layer_count}")
-
-# For the VAE part of your model
-layer_count = len(vae.layers)
-print(f"Total number of layers in the VAE: {layer_count}")
-
-# Freeze the first half of the layers
-for layer in diffusion_model.layers[:layer_count // 2]:
-    layer.trainable = False
-
-print("First half of the layers have been frozen.")
-
-
 
 diffusion_ft_trainer = Trainer(
     diffusion_model=diffusion_model,
