@@ -22,8 +22,6 @@ class Trainer(tf.keras.Model):
         noise_scheduler,
         use_mixed_precision=True,
         max_grad_norm=1.0,
-        middle_layers_to_train=20,  # Number of middle layers to train
-        final_layers_to_train=10,   # Number of final layers to train
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -35,30 +33,28 @@ class Trainer(tf.keras.Model):
         self.use_mixed_precision = use_mixed_precision
         self.vae.trainable = False  # Ensure VAE is not trainable
 
-        # Freeze all layers except the specified middle and final layers
-        self.freeze_layers(middle_layers_to_train, final_layers_to_train)
+        # Apply freezing strategy
+        self.freeze_layers()
 
-    def freeze_layers(self, middle_layers_to_train, final_layers_to_train):
-        """Freeze all layers except the specified middle and final layers."""
-        total_layers = len(self.diffusion_model.layers)
-
-        # Calculate the start and end indices for middle layers
-        start_of_middle_layers = (total_layers // 2) - (middle_layers_to_train // 2)
-        end_of_middle_layers = start_of_middle_layers + middle_layers_to_train
-
-        # Freeze all layers initially
-        for layer in self.diffusion_model.layers:
+    def freeze_layers(self):
+        """Apply the freezing strategy."""
+        # Initial Layers (0-21): Freeze these layers
+        for layer in self.diffusion_model.layers[:22]:
             layer.trainable = False
 
-        # Unfreeze the middle layers
-        for layer in self.diffusion_model.layers[start_of_middle_layers:end_of_middle_layers]:
+        # Middle Layers (22-42): Fine-tune these layers
+        for layer in self.diffusion_model.layers[22:43]:
             layer.trainable = True
 
-        # Unfreeze the final layers
-        for layer in self.diffusion_model.layers[-final_layers_to_train:]:
+        # Upsampling Layers (43-55): Consider freezing these layers
+        for layer in self.diffusion_model.layers[43:56]:
+            layer.trainable = False
+
+        # Final Layers (56-65): Fine-tune these layers
+        for layer in self.diffusion_model.layers[56:]:
             layer.trainable = True
 
-        # Optionally, print out which layers are trainable
+        # Optionally, print out the layers' trainable status for verification
         for i, layer in enumerate(self.diffusion_model.layers):
             print(f"Layer {i}: {layer.name}, Trainable: {layer.trainable}")
 
