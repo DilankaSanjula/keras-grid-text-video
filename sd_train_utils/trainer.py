@@ -34,7 +34,7 @@ class Trainer(tf.keras.Model):
         self.vae.trainable = False  # Ensure VAE is not trainable
 
         # Apply freezing strategy
-        self.freeze_layers()
+        #self.freeze_layers()
 
     def freeze_layers(self):
         """Apply the freezing strategy."""
