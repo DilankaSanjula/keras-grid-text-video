@@ -24,7 +24,7 @@ pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_4.h5'
 pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-4
+lr = 1e-3
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -39,7 +39,7 @@ for i, caption in enumerate(all_captions):
     tokenized_texts[i] = process_text(caption)
 
 # Prepare the dataset
-training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=6)
+training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=8)
 
 # Take a sample batch and investigate
 sample_batch = next(iter(training_dataset))
