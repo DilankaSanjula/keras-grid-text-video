@@ -39,7 +39,7 @@ for i, caption in enumerate(all_captions):
     tokenized_texts[i] = process_text(caption)
 
 # Prepare the dataset
-training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=12)
+training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=6)
 
 # Take a sample batch and investigate
 sample_batch = next(iter(training_dataset))
