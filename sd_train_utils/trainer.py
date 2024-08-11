@@ -15,16 +15,14 @@ from tensorflow import keras
 
 
 class Trainer(tf.keras.Model):
-    # Reference:
-    # https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image.py
-
     def __init__(
         self,
         diffusion_model,
         vae,
         noise_scheduler,
-        use_mixed_precision=False,
+        use_mixed_precision=True,
         max_grad_norm=1.0,
+        freeze_percentage=0.8,  # Percentage of layers to freeze
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -33,9 +31,20 @@ class Trainer(tf.keras.Model):
         self.vae = vae
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
-
         self.use_mixed_precision = use_mixed_precision
-        #self.vae.trainable = True
+        self.vae.trainable = True
+
+        # Freeze the first percentage of layers based on freeze_percentage
+        self.freeze_layers(freeze_percentage)
+
+    def freeze_layers(self, freeze_percentage):
+        """Freeze the first `freeze_percentage` of the layers in the diffusion model."""
+        total_layers = len(self.diffusion_model.layers)
+        layers_to_freeze = int(total_layers * freeze_percentage)
+
+        for i, layer in enumerate(self.diffusion_model.layers[:layers_to_freeze]):
+            layer.trainable = False
+            print(f"Layer {i} ({layer.name}) frozen.")
 
     def train_step(self, inputs):
         images = inputs["images"]
@@ -128,3 +137,6 @@ class Trainer(tf.keras.Model):
             options=options,
         )
         print(f"VAE model weights saved to {vae_filepath}")
+
+
+        
