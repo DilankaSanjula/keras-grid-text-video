@@ -24,7 +24,7 @@ pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_1_diffusion_
 pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-3
+lr = 2e-5
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
