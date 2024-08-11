@@ -62,10 +62,10 @@ noise_scheduler = NoiseScheduler()
 
 
 
-# # Load the pretrained weights
-# if os.path.exists(pretrained_weights_path):
-#     diffusion_model.load_weights(pretrained_weights_path)
-#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+# Load the pretrained weights
+if os.path.exists(pretrained_weights_path):
+    diffusion_model.load_weights(pretrained_weights_path)
+    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 try:
     if os.path.exists(pretrained_vae):
