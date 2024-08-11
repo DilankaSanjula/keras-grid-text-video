@@ -31,7 +31,7 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False  # Ensure VAE is not trainable
+        self.vae.trainable = True  # Ensure VAE is not trainable
 
         # Apply freezing strategy
         #self.freeze_layers()
@@ -66,7 +66,7 @@ class Trainer(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             # Project image into the latent space and sample from it.
-            latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
+            latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
             # Know more about the magic number here:
             # https://keras.io/examples/generative/fine_tune_via_textual_inversion/
             latents = latents * 0.18215
@@ -132,7 +132,7 @@ class Trainer(tf.keras.Model):
 
     def save_weights(self, filepath, overwrite=True, save_format=None, options=None):
         # Save the diffusion model's weights
-        diffusion_model_filepath = filepath + "_diffusion_model_small.h5"
+        diffusion_model_filepath = filepath + "_diffusion_model_both.h5"
         self.diffusion_model.save_weights(
             filepath=diffusion_model_filepath,
             overwrite=overwrite,
@@ -141,15 +141,15 @@ class Trainer(tf.keras.Model):
         )
         print(f"Diffusion model weights saved to {diffusion_model_filepath}")
 
-        # # Save the VAE's weights
-        # vae_filepath = filepath + "_vae_lr.h5"
-        # self.vae.save_weights(
-        #     filepath=vae_filepath,
-        #     overwrite=overwrite,
-        #     save_format=save_format,
-        #     options=options,
-        # )
-        # print(f"VAE model weights saved to {vae_filepath}")
+        # Save the VAE's weights
+        vae_filepath = filepath + "_vae_both.h5"
+        self.vae.save_weights(
+            filepath=vae_filepath,
+            overwrite=overwrite,
+            save_format=save_format,
+            options=options,
+        )
+        print(f"VAE model weights saved to {vae_filepath}")
 
 
         
