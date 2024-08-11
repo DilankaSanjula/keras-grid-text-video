@@ -32,7 +32,7 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = True
+        self.vae.trainable = False
 
         # Freeze the first percentage of layers based on freeze_percentage
         self.freeze_layers(freeze_percentage)
@@ -53,7 +53,7 @@ class Trainer(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             # Project image into the latent space and sample from it.
-            latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
+            latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
             # Know more about the magic number here:
             # https://keras.io/examples/generative/fine_tune_via_textual_inversion/
             latents = latents * 0.18215
@@ -90,7 +90,7 @@ class Trainer(tf.keras.Model):
 
         # Update parameters of the diffusion model.
         #trainable_vars = self.diffusion_model.trainable_variables
-        trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
+        trainable_vars = self.diffusion_model.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)
