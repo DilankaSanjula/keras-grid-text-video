@@ -19,12 +19,12 @@ USE_MP = True
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = '/content/drive/MyDrive/webvid-10m-dataset/grid_images_1'
-pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_1_diffusion_model_lr.h5'
+directory = '/content/drive/MyDrive/webvid-10m-dataset/grid_images_small'
+pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
 pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 2e-5
+lr = 1e-5
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -39,7 +39,7 @@ for i, caption in enumerate(all_captions):
     tokenized_texts[i] = process_text(caption)
 
 # Prepare the dataset
-training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=6)
+training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=4)
 
 # Take a sample batch and investigate
 sample_batch = next(iter(training_dataset))
