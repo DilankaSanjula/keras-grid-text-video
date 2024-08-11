@@ -13,7 +13,6 @@ from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 from tensorflow import keras
 
-
 class Trainer(tf.keras.Model):
     def __init__(
         self,
@@ -31,33 +30,15 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = True  # Ensure VAE is not trainable
+        self.vae.trainable = True  # Ensure VAE is trainable
 
-        # Apply freezing strategy
-        #self.freeze_layers()
+        # Apply freezing strategy if needed
+        # self.freeze_layers()
 
     def freeze_layers(self):
         """Apply the freezing strategy."""
-        # Initial Layers (0-21): Freeze these layers
-        for layer in self.diffusion_model.layers[:22]:
-            layer.trainable = False
-
-        # Middle Layers (22-42): Fine-tune these layers
-        for layer in self.diffusion_model.layers[22:43]:
-            layer.trainable = True
-
-        # Upsampling Layers (43-55): Consider freezing these layers
-        for layer in self.diffusion_model.layers[43:56]:
-            layer.trainable = False
-
-        # Final Layers (56-65): Fine-tune these layers
-        for layer in self.diffusion_model.layers[56:]:
-            layer.trainable = True
-
-        # Optionally, print out the layers' trainable status for verification
-        for i, layer in enumerate(self.diffusion_model.layers):
-            print(f"Layer {i}: {layer.name}, Trainable: {layer.trainable}")
-
+        # This method can be used if you decide to freeze specific layers later on
+        # For now, we will keep everything trainable since you want to train both models
 
     def train_step(self, inputs):
         images = inputs["images"]
@@ -65,13 +46,11 @@ class Trainer(tf.keras.Model):
         batch_size = tf.shape(images)[0]
 
         with tf.GradientTape() as tape:
-            # Project image into the latent space and sample from it.
+            # Forward pass through VAE
             latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
-            # Know more about the magic number here:
-            # https://keras.io/examples/generative/fine_tune_via_textual_inversion/
             latents = latents * 0.18215
 
-            # Sample noise that we'll add to the latents.
+            # Add noise to the latents and compute the noisy latents
             noise = tf.random.normal(tf.shape(latents))
 
             # Sample a random timestep for each image.
@@ -79,17 +58,10 @@ class Trainer(tf.keras.Model):
                 0, self.noise_scheduler.train_timesteps, (batch_size,)
             )
 
-            # Add noise to the latents according to the noise magnitude at each timestep
-            # (this is the forward diffusion process).
+            # Forward pass through diffusion model
             noisy_latents = self.noise_scheduler.add_noise(
                 tf.cast(latents, noise.dtype), noise, timesteps
             )
-
-            # Get the target for loss depending on the prediction type
-            # just the sampled noise for now.
-            target = noise  # noise_schedule.predict_epsilon == True
-
-            # Predict the noise residual and compute loss.
             timestep_embedding = tf.map_fn(
                 lambda t: self.get_timestep_embedding(t), timesteps, dtype=tf.float32
             )
@@ -97,12 +69,11 @@ class Trainer(tf.keras.Model):
             model_pred = self.diffusion_model(
                 [noisy_latents, timestep_embedding, encoded_text], training=True
             )
-            loss = self.compiled_loss(target, model_pred)
+            loss = self.compiled_loss(target=noise, model_pred=model_pred)
             if self.use_mixed_precision:
                 loss = self.optimizer.get_scaled_loss(loss)
 
-        # Update parameters of the diffusion model.
-        #trainable_vars = self.diffusion_model.trainable_variables
+        # Compute gradients for both VAE and diffusion model
         trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
@@ -150,6 +121,3 @@ class Trainer(tf.keras.Model):
             options=options,
         )
         print(f"VAE model weights saved to {vae_filepath}")
-
-
-        
