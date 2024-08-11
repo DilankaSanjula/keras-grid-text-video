@@ -86,7 +86,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 8  # Adjust the number of epochs as needed
+epochs = 50  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
