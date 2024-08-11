@@ -52,7 +52,7 @@ class Trainer(tf.keras.Model):
 
         # Final Layers (56-65): Fine-tune these layers
         for layer in self.diffusion_model.layers[56:]:
-            layer.trainable = True
+            layer.trainable = False
 
         # Optionally, print out the layers' trainable status for verification
         for i, layer in enumerate(self.diffusion_model.layers):
@@ -141,15 +141,15 @@ class Trainer(tf.keras.Model):
         )
         print(f"Diffusion model weights saved to {diffusion_model_filepath}")
 
-        # Save the VAE's weights
-        vae_filepath = filepath + "_vae_lr.h5"
-        self.vae.save_weights(
-            filepath=vae_filepath,
-            overwrite=overwrite,
-            save_format=save_format,
-            options=options,
-        )
-        print(f"VAE model weights saved to {vae_filepath}")
+        # # Save the VAE's weights
+        # vae_filepath = filepath + "_vae_lr.h5"
+        # self.vae.save_weights(
+        #     filepath=vae_filepath,
+        #     overwrite=overwrite,
+        #     save_format=save_format,
+        #     options=options,
+        # )
+        # print(f"VAE model weights saved to {vae_filepath}")
 
 
         
