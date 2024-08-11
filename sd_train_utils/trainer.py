@@ -69,7 +69,7 @@ class Trainer(tf.keras.Model):
             model_pred = self.diffusion_model(
                 [noisy_latents, timestep_embedding, encoded_text], training=True
             )
-            loss = self.compiled_loss(noise, model_pred=model_pred)
+            loss = self.compiled_loss(noise, model_pred)
             if self.use_mixed_precision:
                 loss = self.optimizer.get_scaled_loss(loss)
 
