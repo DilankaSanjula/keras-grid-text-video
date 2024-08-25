@@ -30,27 +30,15 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = True  # Ensure VAE is trainable
-        num_final_layers_to_train=20
-        # Apply freezing strategy if needed
-        # self.freeze_layers()
-        if num_final_layers_to_train is not None:
-            self.freeze_layers(num_final_layers_to_train)
+        self.vae.trainable = False  # Ensure VAE is trainable
+        # No layer freezing - train all layers
+        self.unfreeze_all_layers()
 
-    def freeze_layers(self, num_final_layers_to_train):
-        """Freeze all layers except the last `num_final_layers_to_train` layers in the diffusion model."""
-        total_layers = len(self.diffusion_model.layers)
-        layers_to_unfreeze = min(num_final_layers_to_train, total_layers)
-
-        # Freeze all layers initially
+    def unfreeze_all_layers(self):
+        """Ensure all layers of the diffusion model are trainable."""
         for layer in self.diffusion_model.layers:
-            layer.trainable = False
-
-        # Unfreeze the last `layers_to_unfreeze` layers
-        for layer in self.diffusion_model.layers[-layers_to_unfreeze:]:
             layer.trainable = True
-
-        print(f"Unfroze the last {layers_to_unfreeze} out of {total_layers} layers in the diffusion model.")
+        print("All layers in the diffusion model are unfrozen and trainable.")
 
 
     def train_step(self, inputs):
@@ -60,7 +48,7 @@ class Trainer(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             # Forward pass through VAE
-            latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
+            latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
             latents = latents * 0.18215
 
             # Add noise to the latents and compute the noisy latents
@@ -86,13 +74,15 @@ class Trainer(tf.keras.Model):
             if self.use_mixed_precision:
                 loss = self.optimizer.get_scaled_loss(loss)
 
-        # Compute gradients for both VAE and diffusion model
-        trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
+        # Compute gradients only for the diffusion model (VAE is not trainable)
+        trainable_vars = self.diffusion_model.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)
         gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        return {m.name: m.result() for m in self.metrics}
 
         return {m.name: m.result() for m in self.metrics}
 
@@ -116,7 +106,7 @@ class Trainer(tf.keras.Model):
 
     def save_weights(self, filepath, overwrite=True, save_format=None, options=None):
         # Save the diffusion model's weights
-        diffusion_model_filepath = filepath + "_diffusion_model_both.h5"
+        diffusion_model_filepath = filepath + "_2x2_diffusion_model.h5"
         self.diffusion_model.save_weights(
             filepath=diffusion_model_filepath,
             overwrite=overwrite,
@@ -125,12 +115,12 @@ class Trainer(tf.keras.Model):
         )
         print(f"Diffusion model weights saved to {diffusion_model_filepath}")
 
-        # Save the VAE's weights
-        vae_filepath = filepath + "_vae_both.h5"
-        self.vae.save_weights(
-            filepath=vae_filepath,
-            overwrite=overwrite,
-            save_format=save_format,
-            options=options,
-        )
-        print(f"VAE model weights saved to {vae_filepath}")
+        # # Save the VAE's weights
+        # vae_filepath = filepath + "_vae_both.h5"
+        # self.vae.save_weights(
+        #     filepath=vae_filepath,
+        #     overwrite=overwrite,
+        #     save_format=save_format,
+        #     options=options,
+        # )
+        # print(f"VAE model weights saved to {vae_filepath}")
