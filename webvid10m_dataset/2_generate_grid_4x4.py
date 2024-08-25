@@ -52,7 +52,7 @@ def process_videos_in_folder(folder_path, num_frames=16, grid_size=(4, 4), outpu
                 video_path = os.path.join(folder_path, filename)
                 frames = extract_frames(video_path, num_frames=num_frames)
                 if frames:
-                    output_path = os.path.join(output_folder, f"{os.path.splitext(filename)[0]}_grid.jpg")
+                    output_path = os.path.join(output_folder, f"Grid_image_of_{os.path.splitext(filename)[0]}.jpg")
                     create_grid_image(frames, grid_size=grid_size, output_path=output_path)
         except:
             print("skipped")
