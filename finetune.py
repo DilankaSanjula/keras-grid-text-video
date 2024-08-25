@@ -77,19 +77,24 @@ noise_scheduler = NoiseScheduler()
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
-    def __init__(self, ckpt_dir):
+    def __init__(self, ckpt_dir, save_freq=10):
         super(CustomModelCheckpoint, self).__init__()
         self.ckpt_dir = ckpt_dir
+        self.save_freq = save_freq
 
     def on_epoch_end(self, epoch, logs=None):
-        filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}')
-        self.model.save_weights(filepath)
-        print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
+        if (epoch + 1) % self.save_freq == 0:  # Save every `save_freq` epochs
+            filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}.h5')
+            self.model.save_weights(filepath)
+            print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
+
+# Define the checkpoint directory and frequency
+ckpt_dir = '/content/drive/MyDrive/models/models'
+save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
 epochs = 100  # Adjust the number of epochs as needed
-ckpt_dir = '/content/drive/MyDrive/models/models'
-custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
+custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
 diffusion_ft_trainer = Trainer(
@@ -111,13 +116,13 @@ diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 best_weights_filepath = os.path.join(ckpt_dir, '2x2_best_weights.h5')
 
-model_checkpoint_callback = ModelCheckpoint(
-    filepath=best_weights_filepath,
-    save_weights_only=True,
-    monitor='val_loss',  # You can change this to any metric you want to monitor
-    mode='min',  # Use 'min' if you're monitoring loss, 'max' for accuracy or similar metrics
-    save_best_only=True,  # Save only the best weights
-    verbose=1  # Set to 1 to get a message when the model's weights are saved
-)
+# model_checkpoint_callback = ModelCheckpoint(
+#     filepath=best_weights_filepath,
+#     save_weights_only=True,
+#     monitor='val_loss',  # You can change this to any metric you want to monitor
+#     mode='min',  # Use 'min' if you're monitoring loss, 'max' for accuracy or similar metrics
+#     save_best_only=True,  # Save only the best weights
+#     verbose=1  # Set to 1 to get a message when the model's weights are saved
+# )
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[model_checkpoint_callback])
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
