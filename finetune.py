@@ -87,7 +87,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 10  # Adjust the number of epochs as needed
+epochs = 100  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
@@ -109,15 +109,15 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-best_weights_filepath = os.path.join(ckpt_dir, 'best_weights.h5')
+best_weights_filepath = os.path.join(ckpt_dir, '2x2_best_weights.h5')
 
-# model_checkpoint_callback = ModelCheckpoint(
-#     filepath=best_weights_filepath,
-#     save_weights_only=True,
-#     monitor='val_loss',  # You can change this to any metric you want to monitor
-#     mode='min',  # Use 'min' if you're monitoring loss, 'max' for accuracy or similar metrics
-#     save_best_only=True,  # Save only the best weights
-#     verbose=1  # Set to 1 to get a message when the model's weights are saved
-# )
+model_checkpoint_callback = ModelCheckpoint(
+    filepath=best_weights_filepath,
+    save_weights_only=True,
+    monitor='val_loss',  # You can change this to any metric you want to monitor
+    mode='min',  # Use 'min' if you're monitoring loss, 'max' for accuracy or similar metrics
+    save_best_only=True,  # Save only the best weights
+    verbose=1  # Set to 1 to get a message when the model's weights are saved
+)
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[model_checkpoint_callback])
