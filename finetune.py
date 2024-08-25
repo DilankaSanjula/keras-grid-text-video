@@ -20,7 +20,7 @@ USE_MP = True
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = '/content/drive/MyDrive/webvid-10m-dataset/2x2_images'
+directory = '/content/drive/MyDrive/webvid-10m-dataset/4x4_images'
 pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
 pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
@@ -114,7 +114,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-best_weights_filepath = os.path.join(ckpt_dir, '2x2_best_weights.h5')
+best_weights_filepath = os.path.join(ckpt_dir, '4x4_best_weights.h5')
 
 # model_checkpoint_callback = ModelCheckpoint(
 #     filepath=best_weights_filepath,
