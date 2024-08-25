@@ -63,17 +63,17 @@ noise_scheduler = NoiseScheduler()
 
 
 
-# Load the pretrained weights
-if os.path.exists(pretrained_weights_path):
-    diffusion_model.load_weights(pretrained_weights_path)
-    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+# # Load the pretrained weights
+# if os.path.exists(pretrained_weights_path):
+#     diffusion_model.load_weights(pretrained_weights_path)
+#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
-try:
-    if os.path.exists(pretrained_vae):
-        vae.load_weights(pretrained_vae)
-        print(f"Pretrained vae weights loaded from {pretrained_vae}")
-except Exception as exp:
-    print(exp)
+# try:
+#     if os.path.exists(pretrained_vae):
+#         vae.load_weights(pretrained_vae)
+#         print(f"Pretrained vae weights loaded from {pretrained_vae}")
+# except Exception as exp:
+#     print(exp)
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
@@ -87,7 +87,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 5  # Adjust the number of epochs as needed
+epochs = 10  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
