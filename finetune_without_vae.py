@@ -81,7 +81,6 @@ diffusion_ft_trainer = Trainer(
     use_mixed_precision=USE_MP,
 )
 
-diffusion_ft_trainer.summary()
 # Compile the trainer
 optimizer = tf.keras.optimizers.experimental.AdamW(
     learning_rate=lr,
