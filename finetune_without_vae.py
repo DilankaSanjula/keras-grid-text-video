@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 import keras_cv
-from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from sd_train_utils.data_loader import create_dataframe
@@ -22,7 +21,6 @@ USE_MP = True
 dataset_visualize_image_path = "sample_batch_images.png"
 directory = '/content/drive/MyDrive/webvid-10m-dataset/grid_images_1'
 pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
-pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
 lr = 1e-5
@@ -53,27 +51,13 @@ save_sample_batch_images(sample_batch, dataset_visualize_image_path)
 if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
 
-image_encoder = ImageEncoder()
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
-vae = tf.keras.Model(
-    image_encoder.input,
-    image_encoder.layers[-2].output,
-)
 noise_scheduler = NoiseScheduler()
-
-
 
 # Load the pretrained weights
 if os.path.exists(pretrained_weights_path):
     diffusion_model.load_weights(pretrained_weights_path)
     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
-
-try:
-    if os.path.exists(pretrained_vae):
-        vae.load_weights(pretrained_vae)
-        print(f"Pretrained vae weights loaded from {pretrained_vae}")
-except Exception as exp:
-    print(exp)
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
@@ -87,14 +71,12 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
         print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Fine-tuning
-epochs = 10  # Adjust the number of epochs as needed
+epochs = 1  # Adjust the number of epochs as needed
 ckpt_dir = '/content/drive/MyDrive/models/models'
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir)
 
-
 diffusion_ft_trainer = Trainer(
     diffusion_model=diffusion_model,
-    vae=vae,
     noise_scheduler=noise_scheduler,
     use_mixed_precision=USE_MP,
 )
@@ -121,4 +103,4 @@ model_checkpoint_callback = ModelCheckpoint(
     verbose=1  # Set to 1 to get a message when the model's weights are saved
 )
 
-#diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
