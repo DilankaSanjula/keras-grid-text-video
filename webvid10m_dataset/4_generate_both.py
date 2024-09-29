@@ -68,9 +68,18 @@ def create_grid_image_2x2(frames, grid_size=(2, 2), output_path='grid_image.jpg'
     print(f"Saved grid image as {output_path}")
 
 
-def process_videos_in_folder(folder_path, num_frames=16, grid_size_4x4=(4, 4), grid_size_2x2=(2, 2), output_folder_4x4='4x4_grid_images', output_folder_2x2='2x2_grid_images'):
+def process_videos_in_folder(folder_path):
+
     os.makedirs(output_folder_2x2, exist_ok=True)
     os.makedirs(output_folder_4x4, exist_ok=True)
+
+    num_frames=16
+
+    grid_size_4x4=(4, 4)
+    grid_size_2x2=(2, 2)
+
+    output_folder_2x2='/content/drive/MyDrive/webvid-10-dataset-2/2x2_grid_images'
+    output_folder_4x4='/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
     for filename in os.listdir(folder_path):
         try:
@@ -86,5 +95,5 @@ def process_videos_in_folder(folder_path, num_frames=16, grid_size_4x4=(4, 4), g
             print("skipped")
 
 # Example usage
-folder_path = 'resized_videos'
+folder_path = '/content/drive/MyDrive/webvid-10-dataset-2/resized_videos'
 process_videos_in_folder(folder_path)
