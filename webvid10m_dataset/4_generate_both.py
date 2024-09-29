@@ -70,8 +70,6 @@ def create_grid_image_2x2(frames, grid_size=(2, 2), output_path='grid_image.jpg'
 
 def process_videos_in_folder(folder_path):
 
-    os.makedirs(output_folder_2x2, exist_ok=True)
-    os.makedirs(output_folder_4x4, exist_ok=True)
 
     num_frames=16
 
@@ -80,6 +78,10 @@ def process_videos_in_folder(folder_path):
 
     output_folder_2x2='/content/drive/MyDrive/webvid-10-dataset-2/2x2_grid_images'
     output_folder_4x4='/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+
+    os.makedirs(output_folder_2x2, exist_ok=True)
+    os.makedirs(output_folder_4x4, exist_ok=True)
+
 
     for filename in os.listdir(folder_path):
         try:
