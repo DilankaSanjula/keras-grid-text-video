@@ -42,7 +42,7 @@ def download_video(content_url, file_name):
     except:
         pass
 
-keywords = ['girl', 'woman','man','boy']
+keywords = ['girl', 'woman','man','boy', 'guy']
 count = 0
 for video in train_split:
     # Get the duration in seconds
@@ -51,7 +51,7 @@ for video in train_split:
     #print(f"Duration in seconds: {duration_seconds}")
     if any(keyword in file_name.lower() for keyword in keywords):
         count += 1
-        if count < 100:
+        if count < 200:
             download_video(video['contentUrl'], file_name)
 
         else:

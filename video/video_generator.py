@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-input_image_path = 'images/test2_grid.jpg'
+input_image_path = 'images/Grid_image_of_Casual_young_asian_adult_woman_isolated_on_green-screen_background_with_a_secret.jpg'
 output_video = 'output_video_3.mp4'
 output_dir = 'test'
 
