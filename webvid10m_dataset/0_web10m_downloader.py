@@ -13,7 +13,7 @@ train_split = ds["train"]
 print(train_split[0])
 print(train_split[0]['duration'])
 
-save_folder = 'webvid-10m'
+save_folder = '/content/drive/MyDrive/webvid-10-dataset-2/raw_videos'
 
 def duration_to_seconds(duration):
     pattern = re.compile(r'PT(\d+H)?(\d+M)?(\d+S)?')
@@ -51,7 +51,7 @@ for video in train_split:
     #print(f"Duration in seconds: {duration_seconds}")
     if any(keyword in file_name.lower() for keyword in keywords):
         count += 1
-        if count < 200:
+        if count < 300:
             download_video(video['contentUrl'], file_name)
 
         else:
