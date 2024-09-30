@@ -68,6 +68,10 @@ def generate_image(prompt):
     batch_size = 1
     latent = tf.random.normal((batch_size, RESOLUTION // 8, RESOLUTION // 8, 4))
 
+    print("Latent dtype:", latent.dtype)
+    
+    print("Encoded text dtype:", encoded_text.dtype)
+
     # Inference loop
     for i in range(NUM_INFERENCE_STEPS):
         t = NUM_INFERENCE_STEPS - i - 1
@@ -75,6 +79,7 @@ def generate_image(prompt):
 
         # Denoise the latent representation
         timestep_embedding =  diffusion_ft_trainer.get_timestep_embedding(timestep)
+        print("Timestep embedding dtype:", timestep_embedding.dtype)
         model_output = diffusion_model([latent, timestep_embedding, encoded_text])
 
         # Apply guidance (if needed)
