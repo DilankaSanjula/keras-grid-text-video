@@ -59,6 +59,6 @@ loss_function = tf.keras.losses.MeanSquaredError()
 
 decoder.compile(optimizer=optimizer, loss=loss_function)
 
-history = decoder.fit(train_dataset, epochs=10)
+history = decoder.fit(train_dataset, epochs=100)
 
 decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_model.h5')
