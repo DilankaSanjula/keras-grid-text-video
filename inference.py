@@ -9,6 +9,8 @@ from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.decoder import Decoder
+from sd_train_utils.trainer import Trainer
+
 
 # Constants
 MAX_PROMPT_LENGTH = 77
@@ -29,6 +31,14 @@ text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
 vae = Decoder(512, 512)  # Decoder (VAE) to convert latent representation to image
 noise_scheduler = NoiseScheduler()
+
+
+diffusion_ft_trainer = Trainer(
+    diffusion_model=diffusion_model,
+    vae=vae,
+    noise_scheduler=noise_scheduler,
+    use_mixed_precision=USE_MP,
+)
 
 # Load weights
 if os.path.exists(pretrained_weights_path):
@@ -64,7 +74,7 @@ def generate_image(prompt):
         timestep = tf.convert_to_tensor([t], dtype=tf.int32)
 
         # Denoise the latent representation
-        timestep_embedding = diffusion_model.get_timestep_embedding(timestep)
+        timestep_embedding =  diffusion_ft_trainer.get_timestep_embedding(timestep)
         model_output = diffusion_model([latent, timestep_embedding, encoded_text])
 
         # Apply guidance (if needed)
