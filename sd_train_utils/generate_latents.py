@@ -2,42 +2,48 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-import keras_cv
 from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
-from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
-from keras_cv.models.stable_diffusion.decoder import Decoder
+from sd_train_utils.trainer import Trainer
+from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 
 # Constants
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 50
+NUM_INFERENCE_STEPS = 100
 GUIDANCE_SCALE = 7.5
 
 # Paths
-pretrained_weights_path = '/content/drive/MyDrive/models/best_weights.h5'
-pretrained_decoder_path = '/content/drive/MyDrive/models/decoder_4x4/decoder.h5'
+pretrained_weights_path = '/content/drive/MyDrive/models/vae_diffusion_model/ckpt_epoch_100.h5_2x2_diffusion_model.h5'
+pretrained_vae_path = '/content/drive/MyDrive/models/decoder_4x4/decoder_model.h5'
 
 # Initialize components
 if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
 
+image_encoder = ImageEncoder()
 text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
-vae = Decoder()  # Decoder (VAE) to convert latent representation to image
 noise_scheduler = NoiseScheduler()
+vae = tf.keras.Model(
+    image_encoder.input,
+    image_encoder.layers[-2].output,
+)
+diffusion_ft_trainer = Trainer(
+    diffusion_model=diffusion_model,
+    vae=vae,
+    noise_scheduler=noise_scheduler,
+    use_mixed_precision=USE_MP,
+)
 
 # Load weights
 if os.path.exists(pretrained_weights_path):
     diffusion_model.load_weights(pretrained_weights_path)
     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
-if os.path.exists(pretrained_decoder_path):
-    vae.load_weights(pretrained_decoder_path)
-    print(f"Pretrained VAE weights loaded from {pretrained_decoder_path}")
 
 # Prepare text prompt
 def encode_prompt(prompt):
@@ -48,7 +54,7 @@ def encode_prompt(prompt):
     tokens = np.array(tokens)[None, :]  # Batch dimension
     return tokens
 
-def generate_image(prompt):
+def generate_latent(prompt):
     tokens = encode_prompt(prompt)
     attention_mask = np.where(tokens != 49407, 1, 0)
     # # Pass both tokens and attention mask to the text encoder
@@ -64,7 +70,7 @@ def generate_image(prompt):
         timestep = tf.convert_to_tensor([t], dtype=tf.int32)
 
         # Denoise the latent representation
-        timestep_embedding = diffusion_model.get_timestep_embedding(timestep)
+        timestep_embedding = diffusion_ft_trainer.get_timestep_embedding(timestep)
         model_output = diffusion_model([latent, timestep_embedding, encoded_text])
 
         # Apply guidance (if needed)
@@ -75,17 +81,8 @@ def generate_image(prompt):
         # Update latent representation
         latent = noise_scheduler.step(model_output, t, latent)
 
-    # Decode the latent representation into an image
-    image = vae(latent)
-    image = (image + 1) / 2  # Rescale to [0, 1]
+    return latent
 
-    return image
-
-# Example usage
-prompt = "A futuristic cityscape at sunset"
-generated_image = generate_image(prompt)
-
-# Save the image
-generated_image_path = "/content/MyDrive/models/generated_image.png"
-keras.preprocessing.image.save_img(generated_image_path, generated_image[0])
-print(f"Generated image saved to {generated_image_path}")
+# # Example usage
+# prompt = "A futuristic cityscape at sunset"
+# generated_latent = generate_latent(prompt)

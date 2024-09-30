@@ -1,5 +1,5 @@
-keras-cv==0.6.0
-tensorflow 
+keras-cv==0.6.0 
+tensorflow==2.13.0 
 keras-core
 matplotlib
 pandas
