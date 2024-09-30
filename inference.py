@@ -77,7 +77,6 @@ def generate_image(prompt):
     
     encoded_text = tf.cast(encoded_text, tf.int32)
     latent = tf.cast(latent, tf.float32)
-    timestep_embedding = tf.cast(timestep_embedding, tf.int32)
 
     # Inference loop
     for i in range(NUM_INFERENCE_STEPS):
