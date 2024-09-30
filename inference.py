@@ -10,7 +10,7 @@ from keras_cv.models.stable_diffusion.text_encoder import TextEncoder
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.trainer import Trainer
-
+from tensorflow.keras.mixed_precision import set_global_policy
 
 # Constants
 MAX_PROMPT_LENGTH = 77
@@ -26,6 +26,8 @@ pretrained_decoder_path = '/content/drive/MyDrive/models/decoder_4x4/decoder.h5'
 # Initialize components
 if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
+
+set_global_policy('mixed_float16')
 
 text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
