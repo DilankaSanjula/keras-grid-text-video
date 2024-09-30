@@ -82,7 +82,7 @@ def generate_image(prompt):
         # Denoise the latent representation
         timestep_embedding =  diffusion_ft_trainer.get_timestep_embedding(timestep)
         print("Timestep embedding dtype:", timestep_embedding.dtype)
-        model_output = diffusion_model([latent, timestep_embedding, encoded_text])
+        model_output = diffusion_model([tf.cast(latent, tf.float32), tf.cast(timestep_embedding, tf.float32), tf.cast(encoded_text, tf.float32)])
 
         # Apply guidance (if needed)
         if GUIDANCE_SCALE > 1:
