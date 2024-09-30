@@ -27,7 +27,7 @@ pretrained_decoder_path = '/content/drive/MyDrive/models/decoder_4x4/decoder.h5'
 if USE_MP:
     keras.mixed_precision.set_global_policy("mixed_float16")
 
-set_global_policy('mixed_float16')
+#set_global_policy('mixed_float16')
 
 text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
@@ -72,9 +72,12 @@ def generate_image(prompt):
 
     print("Latent dtype:", latent.dtype)
     
-    encoded_text = tf.cast(encoded_text, tf.float32)
+    encoded_text = tf.cast(encoded_text, tf.int32)
     print("Encoded text dtype after casting:", encoded_text.dtype)
     
+    encoded_text = tf.cast(encoded_text, tf.int32)
+    latent = tf.cast(latent, tf.float32)
+    timestep_embedding = tf.cast(timestep_embedding, tf.int32)
 
     # Inference loop
     for i in range(NUM_INFERENCE_STEPS):
@@ -84,7 +87,7 @@ def generate_image(prompt):
         # Denoise the latent representation
         timestep_embedding =  diffusion_ft_trainer.get_timestep_embedding(timestep)
         print("Timestep embedding dtype:", timestep_embedding.dtype)
-        model_output = diffusion_model([tf.cast(latent, tf.float32), tf.cast(timestep_embedding, tf.float32), tf.cast(encoded_text, tf.float32)])
+        model_output = diffusion_model([tf.cast(latent, tf.int32), tf.cast(timestep_embedding, tf.int32), tf.cast(encoded_text, tf.int32)])
 
         # Apply guidance (if needed)
         if GUIDANCE_SCALE > 1:
