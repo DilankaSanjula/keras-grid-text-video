@@ -6,7 +6,7 @@ from sd_train_utils.generate_latents import generate_latent
 # Load the decoder with pre-trained weights
 decoder = Decoder(512, 512)
 
-image_folder = 'webvid10m_dataset/2x2_grid_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
 # Preprocessing function for the images
 def preprocess_image(image_path):
