@@ -72,7 +72,9 @@ def generate_image(prompt):
 
     print("Latent dtype:", latent.dtype)
     
-    print("Encoded text dtype:", encoded_text.dtype)
+    encoded_text = tf.cast(encoded_text, tf.float32)
+    print("Encoded text dtype after casting:", encoded_text.dtype)
+    
 
     # Inference loop
     for i in range(NUM_INFERENCE_STEPS):
