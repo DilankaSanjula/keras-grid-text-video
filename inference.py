@@ -14,7 +14,7 @@ from keras_cv.models.stable_diffusion.decoder import Decoder
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 50
+NUM_INFERENCE_STEPS = 100
 GUIDANCE_SCALE = 7.5
 
 # Paths
@@ -27,7 +27,7 @@ if USE_MP:
 
 text_encoder = TextEncoder(MAX_PROMPT_LENGTH)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
-vae = Decoder()  # Decoder (VAE) to convert latent representation to image
+vae = Decoder(512, 512)  # Decoder (VAE) to convert latent representation to image
 noise_scheduler = NoiseScheduler()
 
 # Load weights
