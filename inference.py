@@ -72,21 +72,20 @@ def generate_image(prompt):
 
     print("Latent dtype:", latent.dtype)
     
-    encoded_text = tf.cast(encoded_text, tf.int32)
+    encoded_text = tf.cast(encoded_text, tf.float32)
     print("Encoded text dtype after casting:", encoded_text.dtype)
-    
-    encoded_text = tf.cast(encoded_text, tf.int32)
+
     latent = tf.cast(latent, tf.float32)
 
     # Inference loop
     for i in range(NUM_INFERENCE_STEPS):
         t = NUM_INFERENCE_STEPS - i - 1
-        timestep = tf.convert_to_tensor([t], dtype=tf.int32)
+        timestep = tf.convert_to_tensor([t], dtype=tf.float32)
 
         # Denoise the latent representation
         timestep_embedding =  diffusion_ft_trainer.get_timestep_embedding(timestep)
         print("Timestep embedding dtype:", timestep_embedding.dtype)
-        model_output = diffusion_model([tf.cast(latent, tf.int32), tf.cast(timestep_embedding, tf.int32), tf.cast(encoded_text, tf.int32)])
+        model_output = diffusion_model([latent, timestep_embedding, encoded_text])
 
         # Apply guidance (if needed)
         if GUIDANCE_SCALE > 1:
