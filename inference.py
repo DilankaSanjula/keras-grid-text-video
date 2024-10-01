@@ -11,6 +11,8 @@ from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.trainer import Trainer
 from tensorflow.keras.mixed_precision import set_global_policy
+import matplotlib.pyplot as plt
+
 
 # Constants
 MAX_PROMPT_LENGTH = 77
@@ -104,9 +106,19 @@ def generate_image(prompt):
 
 # Example usage
 prompt = "A futuristic cityscape at sunset"
-generated_image = generate_image(prompt)
 
-# Save the image
-generated_image_path = "/content/MyDrive/models"
-keras.preprocessing.image.save_img(generated_image_path, generated_image[0])
-print(f"Generated image saved to {generated_image_path}")
+def generate_and_show_image(prompt):
+    image = generate_image(prompt)  # Generate the image using the function you defined
+
+    # Convert tensor to numpy and ensure it is in the correct format
+    image = image.numpy()[0]  # Assuming the image is the first in a batch
+    image = np.clip(image, 0, 1)  # Ensure the pixel values are between 0 and 1
+
+    # Display the image
+    plt.imshow(image)
+    plt.axis('off')  # Turn off axis numbers and ticks
+    plt.show()
+
+# Example usage
+prompt = "A futuristic cityscape at sunset"
+generate_and_show_image(prompt)
