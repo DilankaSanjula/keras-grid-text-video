@@ -108,15 +108,18 @@ def generate_image(prompt):
 prompt = "A futuristic cityscape at sunset"
 
 def generate_and_show_image(prompt):
-    image = generate_image(prompt)  # Generate the image using the function you defined
+    image = generate_image(prompt)  # This calls your image generation function
 
-    # Convert tensor to numpy and ensure it is in the correct format
-    image = image.numpy()[0]  # Assuming the image is the first in a batch
-    image = np.clip(image, 0, 1)  # Ensure the pixel values are between 0 and 1
+    # Ensure image is a numpy array in the correct shape
+    image = image.numpy()[0]  # Take the first image if it's a batch
+
+    # Normalize and clip the image data to ensure it's between 0 and 1
+    image = np.clip(image, 0, 1)
 
     # Display the image
+    plt.figure(figsize=(8, 8))  # Specify the size of the figure to display
     plt.imshow(image)
-    plt.axis('off')  # Turn off axis numbers and ticks
+    plt.axis('off')  # Hide axes
     plt.show()
 
 # Example usage
