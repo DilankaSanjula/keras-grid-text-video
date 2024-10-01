@@ -13,7 +13,7 @@ from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 2
+NUM_INFERENCE_STEPS = 100
 GUIDANCE_SCALE = 7.5
 
 # Paths

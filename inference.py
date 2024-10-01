@@ -16,7 +16,7 @@ from tensorflow.keras.mixed_precision import set_global_policy
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 100
+NUM_INFERENCE_STEPS = 50
 GUIDANCE_SCALE = 7.5
 
 # Paths
@@ -107,6 +107,6 @@ prompt = "A futuristic cityscape at sunset"
 generated_image = generate_image(prompt)
 
 # Save the image
-generated_image_path = "/content/MyDrive/models/generated_image.png"
+generated_image_path = "/content/MyDrive/models"
 keras.preprocessing.image.save_img(generated_image_path, generated_image[0])
 print(f"Generated image saved to {generated_image_path}")
