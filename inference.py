@@ -93,6 +93,7 @@ def generate_image(prompt):
             model_output = uncond_latent + GUIDANCE_SCALE * (model_output - uncond_latent)
 
         # Update latent representation
+        model_output = tf.cast(model_output, tf.float32)
         latent = noise_scheduler.step(model_output, t, latent)
 
     # Decode the latent representation into an image
