@@ -107,8 +107,7 @@ def generate_image(prompt):
 # Example usage
 prompt = "A futuristic cityscape at sunset"
 
-def generate_and_show_image(prompt):
-    image = generate_image(prompt)  # This calls your image generation function
+def display_image(image):
 
     # Ensure image is a numpy array in the correct shape
     image = image.numpy()[0]  # Take the first image if it's a batch
@@ -124,4 +123,5 @@ def generate_and_show_image(prompt):
 
 # Example usage
 prompt = "A futuristic cityscape at sunset"
-generate_and_show_image(prompt)
+image = generate_image(prompt) 
+display_image(image)
