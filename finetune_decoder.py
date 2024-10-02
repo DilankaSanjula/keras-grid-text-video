@@ -106,11 +106,11 @@ reloaded_dataset = tf.data.Dataset.load(path)
 
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-# optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-# loss_function = tf.keras.losses.MeanSquaredError()
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+loss_function = tf.keras.losses.MeanSquaredError()
 
-# decoder.compile(optimizer=optimizer, loss=loss_function)
+decoder.compile(optimizer=optimizer, loss=loss_function)
 
-# # If shapes are correct, proceed to training
-# history = decoder.fit(train_dataset, epochs=20)
-# decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
+# If shapes are correct, proceed to training
+history = decoder.fit(reloaded_dataset, epochs=20)
+decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
