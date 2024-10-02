@@ -34,7 +34,7 @@ stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/models/vae
 
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/test_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 #image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
 
 # Preprocessing function for the images
@@ -56,7 +56,7 @@ def generate_latents_from_filenames(image_paths):
     for image_path in image_paths:
         print(image_path)
         prompt = os.path.splitext(os.path.basename(image_path))[0].replace('_', ' ')
-        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=2)  # Generate latent for the prompt
+        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=50)  # Generate latent for the prompt
         latents.append(latent)
     return latents
 
@@ -100,17 +100,17 @@ def save_dataset(path):
 
 save_dataset(path)
 
-# Load the dataset
-reloaded_dataset = tf.data.Dataset.load(path)
+# # Load the dataset
+# reloaded_dataset = tf.data.Dataset.load(path)
 
 
 
-# # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-loss_function = tf.keras.losses.MeanSquaredError()
+# # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
+# optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+# loss_function = tf.keras.losses.MeanSquaredError()
 
-decoder.compile(optimizer=optimizer, loss=loss_function)
+# decoder.compile(optimizer=optimizer, loss=loss_function)
 
-# If shapes are correct, proceed to training
-history = decoder.fit(reloaded_dataset, epochs=20)
-decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
+# # If shapes are correct, proceed to training
+# history = decoder.fit(reloaded_dataset, epochs=20)
+# decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
