@@ -40,7 +40,7 @@ def generate_latents_from_filenames(image_paths):
     return latents
 
 # Create a tf.data.Dataset that contains both latents and images
-def create_latent_image_dataset(image_folder, batch_size=16):
+def create_latent_image_dataset(image_folder, batch_size=8):
     image_paths = load_image_paths(image_folder)
     
     # Generate latents using image filenames as prompts
