@@ -19,7 +19,7 @@ outputs = {}
 
 
 for prompt in prompts:
-    generated_latents = stable_diffusion.text_to_image(
+    generated_latents = stable_diffusion.text_to_latent(
         prompt, batch_size=images_to_generate, unconditional_guidance_scale=40,num_steps=30
     )
 
