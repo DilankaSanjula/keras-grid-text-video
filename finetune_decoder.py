@@ -34,7 +34,7 @@ for i, image_array in enumerate(generated_images):
 
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/test_images'
 
 # Preprocessing function for the images
 def preprocess_image(image_path):
@@ -97,7 +97,7 @@ save_path = '/content/drive/MyDrive/models/decoder_dataset/'
 
 # Function to save dataset
 def save_dataset(dataset, path):
-    tf.data.experimental.save(dataset, path)
+    dataset.save(path)
 
 # Example of saving the train_dataset
 save_dataset(train_dataset, save_path)
