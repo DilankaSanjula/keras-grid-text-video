@@ -102,6 +102,18 @@ def save_dataset(dataset, path):
 # Example of saving the train_dataset
 save_dataset(train_dataset, save_path)
 
+# # Function to load dataset
+# def load_dataset(path, element_spec):
+#     return tf.data.experimental.load(path, element_spec)
+
+# # Specifying the element spec based on provided shapes
+# element_spec = (tf.TensorSpec(shape=(None, 64, 64, 4), dtype=tf.float32),  # Adjusted latent shape
+#                 tf.TensorSpec(shape=(None, 512, 512, 3), dtype=tf.float32))  # Image shape and type
+
+# # Load the dataset
+# reloaded_dataset = load_dataset(save_path, element_spec)
+
+
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
 # optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
