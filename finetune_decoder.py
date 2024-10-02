@@ -35,7 +35,7 @@ def generate_latents_from_filenames(image_paths):
     for image_path in image_paths:
         print(image_path)
         prompt = os.path.splitext(os.path.basename(image_path))[0].replace('_', ' ')
-        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=2)  # Generate latent for the prompt
+        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=100)  # Generate latent for the prompt
         latents.append(latent)
     return latents
 
@@ -78,5 +78,5 @@ loss_function = tf.keras.losses.MeanSquaredError()
 decoder.compile(optimizer=optimizer, loss=loss_function)
 
 # If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, epochs=50)
+history = decoder.fit(train_dataset, epochs=20)
 decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
