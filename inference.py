@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 50
+NUM_INFERENCE_STEPS = 5
 GUIDANCE_SCALE = 7.5
 
 # Paths
