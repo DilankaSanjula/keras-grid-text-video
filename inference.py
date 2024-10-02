@@ -116,6 +116,6 @@ save_path = "/content/drive/MyDrive/models/futuristic_cityscape_100.png"
 
 
 # Example usage
-prompt = "A futuristic cityscape at sunset"
+prompt = "a portrait of a king"
 image = generate_image(prompt) 
 save_image(image, save_path)
