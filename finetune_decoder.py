@@ -91,12 +91,24 @@ def check_dataset_shapes(dataset):
 train_dataset = create_latent_image_dataset(image_folder)
 check_dataset_shapes(train_dataset)
 
-# Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-loss_function = tf.keras.losses.MeanSquaredError()
 
-decoder.compile(optimizer=optimizer, loss=loss_function)
+# Define the directory to save the dataset
+save_path = '/content/drive/MyDrive/models/decoder_dataset/'
 
-# If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, epochs=20)
-decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
+# Function to save dataset
+def save_dataset(dataset, path):
+    tf.data.experimental.save(dataset, path)
+
+# Example of saving the train_dataset
+save_dataset(train_dataset, save_path)
+
+
+# # Now `train_dataset` contains pairs of (latent, image) for training the decoder
+# optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+# loss_function = tf.keras.losses.MeanSquaredError()
+
+# decoder.compile(optimizer=optimizer, loss=loss_function)
+
+# # If shapes are correct, proceed to training
+# history = decoder.fit(train_dataset, epochs=20)
+# decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
