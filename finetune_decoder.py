@@ -1,12 +1,19 @@
 from keras_cv.models.stable_diffusion.decoder import Decoder
+from stable_diffusion import StableDiffusion
+import matplotlib.pyplot as plt
+from PIL import Image
 import tensorflow as tf
 import os
-from sd_train_utils.generate_latents import generate_latent
+
+img_height = img_width = 512
+stable_diffusion = StableDiffusion(
+    img_width=img_width, img_height=img_height
+)
 
 # Load the decoder with pre-trained weights
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
 
 # Preprocessing function for the images
 def preprocess_image(image_path):
@@ -25,8 +32,9 @@ def load_image_paths(image_folder):
 def generate_latents_from_filenames(image_paths):
     latents = []
     for image_path in image_paths:
+        print(image_path)
         prompt = os.path.splitext(os.path.basename(image_path))[0].replace('_', ' ')
-        latent = generate_latent(prompt)  # Generate latent for the prompt
+        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=2)  # Generate latent for the prompt
         latents.append(latent)
     return latents
 
@@ -41,17 +49,26 @@ def create_latent_image_dataset(image_folder, batch_size=4):
     dataset = tf.data.Dataset.from_tensor_slices((image_paths, latents))
     
     # Map the dataset to load images and pair them with latents
-    def load_image_and_latent(image_path, latent):
-        image = preprocess_image(image_path)
-        return latent, image  # Return tuple (latent, image)
-    
     dataset = dataset.map(load_image_and_latent, num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.batch(batch_size).prefetch(buffer_size=tf.data.AUTOTUNE)
     
     return dataset
 
-# Create the training dataset with latents and images
+# Adjusted load_image_and_latent function
+def load_image_and_latent(image_path, latent):
+    image = preprocess_image(image_path)
+    latent = tf.squeeze(latent)  # Ensure latent tensor is in the correct shape
+    return latent, image
+
+# Ensure your decoder expects the correct input shape
+def check_dataset_shapes(dataset):
+    for latent, image in dataset.take(1):
+        print("Latent shape:", latent.shape)
+        print("Image shape:", image.shape)
+
+# Create and check dataset
 train_dataset = create_latent_image_dataset(image_folder)
+check_dataset_shapes(train_dataset)
 
 # Now `train_dataset` contains pairs of (latent, image) for training the decoder
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
@@ -59,6 +76,6 @@ loss_function = tf.keras.losses.MeanSquaredError()
 
 decoder.compile(optimizer=optimizer, loss=loss_function)
 
-history = decoder.fit(train_dataset, epochs=100)
-
-decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_model.h5')
+# If shapes are correct, proceed to training
+history = decoder.fit(train_dataset, epochs=1)
+decoder.save('decoder_model2.h5')

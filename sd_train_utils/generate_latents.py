@@ -61,7 +61,7 @@ def generate_latent(prompt):
     encoded_text = text_encoder([tokens, attention_mask])
 
     # Start from random noise
-    batch_size = 1
+    batch_size = 4
     latent = tf.random.normal((batch_size, RESOLUTION // 8, RESOLUTION // 8, 4))
 
     # Inference loop
