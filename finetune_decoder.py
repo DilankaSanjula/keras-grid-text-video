@@ -10,7 +10,7 @@ stable_diffusion = StableDiffusion(
     img_width=img_width, img_height=img_height
 )
 
-stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/models/vae_diffusion_model")
+stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/models/vae_diffusion_model/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
 # Load the decoder with pre-trained weights
 decoder = Decoder(512, 512)
 
