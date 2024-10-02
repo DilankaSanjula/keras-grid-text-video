@@ -12,6 +12,26 @@ stable_diffusion = StableDiffusion(
 
 stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/models/vae_diffusion_model/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
 # Load the decoder with pre-trained weights
+
+prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
+images_to_generate = 1
+outputs = {}
+
+
+for prompt in prompts:
+    generated_latents = stable_diffusion.text_to_image(
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=40,num_steps=30
+    )
+
+generated_images = stable_diffusion.latent_to_image(generated_latents)
+
+for i, image_array in enumerate(generated_images):
+    img = Image.fromarray(image_array)
+    file_path = "/content/drive/MyDrive/models/loaded_4x4_test.png"
+    img.save(file_path)
+    print(f"Saved: {file_path}")
+
+
 decoder = Decoder(512, 512)
 
 image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
