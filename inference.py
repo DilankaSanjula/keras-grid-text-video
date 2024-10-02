@@ -112,7 +112,7 @@ def save_image(image, path):
     image.save(path)
 
 # Define the path where you want to save the image
-save_path = "/content/drive/MyDrive/models/futuristic_cityscape_100.png"
+save_path = "/content/drive/MyDrive/models/king_100.png"
 
 
 # Example usage
