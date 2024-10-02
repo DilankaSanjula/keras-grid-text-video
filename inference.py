@@ -18,7 +18,7 @@ from PIL import Image
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
-NUM_INFERENCE_STEPS = 5
+NUM_INFERENCE_STEPS = 100
 GUIDANCE_SCALE = 7.5
 
 # Paths
@@ -112,11 +112,7 @@ def save_image(image, path):
     image.save(path)
 
 # Define the path where you want to save the image
-save_path = "/content/drive/MyDrive/models/futuristic_cityscape.png"
-
-
-# Example usage
-prompt = "A futuristic cityscape at sunset"
+save_path = "/content/drive/MyDrive/models/futuristic_cityscape_100.png"
 
 
 # Example usage
