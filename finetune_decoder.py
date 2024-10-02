@@ -10,10 +10,11 @@ stable_diffusion = StableDiffusion(
     img_width=img_width, img_height=img_height
 )
 
+stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/models/vae_diffusion_model")
 # Load the decoder with pre-trained weights
 decoder = Decoder(512, 512)
 
-image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
 # Preprocessing function for the images
 def preprocess_image(image_path):
@@ -77,5 +78,5 @@ loss_function = tf.keras.losses.MeanSquaredError()
 decoder.compile(optimizer=optimizer, loss=loss_function)
 
 # If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, epochs=1)
-decoder.save('decoder_model2.h5')
+history = decoder.fit(train_dataset, epochs=100)
+decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
