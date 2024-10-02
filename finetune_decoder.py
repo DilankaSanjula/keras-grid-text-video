@@ -89,18 +89,17 @@ def check_dataset_shapes(dataset):
 
 # Create and check dataset
 train_dataset = create_latent_image_dataset(image_folder)
-#check_dataset_shapes(train_dataset)
+check_dataset_shapes(train_dataset)
 
 
 # Define the directory to save the dataset
 save_path = '/content/drive/MyDrive/models/decoder_dataset/'
 
-# # Function to save dataset
-# def save_dataset(dataset, path):
-#     dataset.save(path)
+# Function to save dataset
+def save_dataset(dataset, path):
+    dataset.save(path)
 
-# Example of saving the train_dataset
-#save_dataset(train_dataset, save_path)
+save_dataset(train_dataset, save_path)
 
 # # Function to load dataset
 # def load_dataset(path, element_spec):
