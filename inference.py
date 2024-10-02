@@ -12,7 +12,7 @@ from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.trainer import Trainer
 from tensorflow.keras.mixed_precision import set_global_policy
 import matplotlib.pyplot as plt
-
+from PIL import Image
 
 # Constants
 MAX_PROMPT_LENGTH = 77
@@ -104,24 +104,22 @@ def generate_image(prompt):
 
     return image
 
+def save_image(image, path):
+    # Convert the TensorFlow tensor to a PIL Image and ensure it's in the correct format
+    image = Image.fromarray((image.numpy()[0] * 255).astype('uint8'))
+
+    # Save the image
+    image.save(path)
+
+# Define the path where you want to save the image
+save_path = "/content/drive/MyDrive/models/futuristic_cityscape.png"
+
+
 # Example usage
 prompt = "A futuristic cityscape at sunset"
 
-def display_image(image):
-
-    # Ensure image is a numpy array in the correct shape
-    image = image.numpy()[0]  # Take the first image if it's a batch
-
-    # Normalize and clip the image data to ensure it's between 0 and 1
-    image = np.clip(image, 0, 1)
-
-    # Display the image
-    plt.figure(figsize=(8, 8))  # Specify the size of the figure to display
-    plt.imshow(image)
-    plt.axis('off')  # Hide axes
-    plt.show()
 
 # Example usage
 prompt = "A futuristic cityscape at sunset"
 image = generate_image(prompt) 
-display_image(image)
+save_image(image, save_path)
