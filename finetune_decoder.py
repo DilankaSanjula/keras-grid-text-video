@@ -89,7 +89,7 @@ def check_dataset_shapes(dataset):
 
 # Create and check dataset
 train_dataset = create_latent_image_dataset(image_folder)
-check_dataset_shapes(train_dataset)
+#check_dataset_shapes(train_dataset)
 
 
 # Define the directory to save the dataset
