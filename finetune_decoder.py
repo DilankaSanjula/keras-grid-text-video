@@ -60,6 +60,10 @@ def create_latent_image_dataset(image_folder, batch_size=4):
 def load_image_and_latent(image_path, latent):
     image = preprocess_image(image_path)
     latent = tf.squeeze(latent)  # Ensure latent tensor is in the correct shape
+
+    print("Image min value:", tf.reduce_min(image).numpy())
+    print("Image max value:", tf.reduce_max(image).numpy())
+    
     return latent, image
 
 # Ensure your decoder expects the correct input shape
