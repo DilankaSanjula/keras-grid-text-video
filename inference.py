@@ -27,7 +27,7 @@ generated_images = grid_model.latent_to_image(generated_latents)
 
 for i, image_array in enumerate(generated_images):
     img = Image.fromarray(image_array)
-    file_path = f"/content/drive/MyDrive/models/image_with_decoder_trained_{i}.png"
+    file_path = f"/content/drive/MyDrive/models/image_with_decoder_trained2_{i}.png"
     img.save(file_path)
     print(f"Saved: {file_path}")
     
