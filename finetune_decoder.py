@@ -88,7 +88,7 @@ path = '/content/drive/MyDrive/models/decoder_dataset'
 reloaded_dataset = tf.data.Dataset.load(path)
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
 loss_function = tf.keras.losses.MeanSquaredError()
 
 decoder.compile(optimizer=optimizer, loss=loss_function)
