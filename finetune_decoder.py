@@ -12,7 +12,8 @@ stable_diffusion = StableDiffusion(
 
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/debug_images'
+#image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 #image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
 
 # Preprocessing function for the images
@@ -63,7 +64,7 @@ def load_image_and_latent(image_path, latent):
 
     print("Image min value:", tf.reduce_min(image).numpy())
     print("Image max value:", tf.reduce_max(image).numpy())
-    
+
     return latent, image
 
 # Ensure your decoder expects the correct input shape
