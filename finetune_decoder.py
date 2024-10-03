@@ -62,8 +62,9 @@ def load_image_and_latent(image_path, latent):
     image = preprocess_image(image_path)
     latent = tf.squeeze(latent)  # Ensure latent tensor is in the correct shape
 
-    print("Image min value:", tf.reduce_min(image).numpy())
-    print("Image max value:", tf.reduce_max(image).numpy())
+
+    tf.print("Image shape:", tf.shape(image))
+    tf.print("Latent shape:", tf.shape(latent))
 
     return latent, image
 
@@ -73,13 +74,9 @@ def check_dataset_shapes(dataset):
         print("Latent shape:", latent.shape)
         print("Image shape:", image.shape)
 
-        # Check the range of image values to ensure they are in the correct range
-        print("Image min value:", tf.reduce_min(image).numpy())
-        print("Image max value:", tf.reduce_max(image).numpy())
-
-        # Optionally, you can also check the latent value ranges
-        print("Latent min value:", tf.reduce_min(latent).numpy())
-        print("Latent max value:", tf.reduce_max(latent).numpy())
+    #    Optionally, print shapes
+        tf.print("Image shape:", tf.shape(image))
+        tf.print("Latent shape:", tf.shape(latent))
 
 
 train_dataset = create_latent_image_dataset(image_folder)
