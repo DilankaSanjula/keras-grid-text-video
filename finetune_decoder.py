@@ -100,10 +100,12 @@ path = '/content/drive/MyDrive/models/decoder_dataset'
 
 # save_dataset(path)
 
+
+
+
+
 # # # Load the dataset
 reloaded_dataset = tf.data.Dataset.load(path)
-
-
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
