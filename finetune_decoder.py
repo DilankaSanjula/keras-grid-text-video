@@ -12,8 +12,7 @@ stable_diffusion = StableDiffusion(
 
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/debug_images'
-#image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 #image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
 
 # Preprocessing function for the images
@@ -80,14 +79,12 @@ train_dataset = create_latent_image_dataset(image_folder)
 check_dataset_shapes(train_dataset)
 
 # #path = 'decoder_dataset/'
-# path = '/content/drive/MyDrive/models/decoder_dataset'
+path = '/content/drive/MyDrive/models/decoder_dataset'
 
-# def save_dataset(path):
-#     train_dataset.save(path)
+def save_dataset(path):
+    train_dataset.save(path)
 
-# save_dataset(path)
-
-
+save_dataset(path)
 
 
 
