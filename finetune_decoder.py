@@ -62,23 +62,31 @@ def load_image_and_latent(image_path, latent):
     latent = tf.squeeze(latent)  # Ensure latent tensor is in the correct shape
     return latent, image
 
-# # Ensure your decoder expects the correct input shape
-# def check_dataset_shapes(dataset):
-#     for latent, image in dataset.take(1):
-#         print("Latent shape:", latent.shape)
-#         print("Image shape:", image.shape)
+# Ensure your decoder expects the correct input shape
+def check_dataset_shapes(dataset):
+    for latent, image in dataset.take(1):
+        print("Latent shape:", latent.shape)
+        print("Image shape:", image.shape)
+
+        # Check the range of image values to ensure they are in the correct range
+        print("Image min value:", tf.reduce_min(image).numpy())
+        print("Image max value:", tf.reduce_max(image).numpy())
+
+        # Optionally, you can also check the latent value ranges
+        print("Latent min value:", tf.reduce_min(latent).numpy())
+        print("Latent max value:", tf.reduce_max(latent).numpy())
 
 
-# train_dataset = create_latent_image_dataset(image_folder)
-# check_dataset_shapes(train_dataset)
+train_dataset = create_latent_image_dataset(image_folder)
+check_dataset_shapes(train_dataset)
 
 #path = 'decoder_dataset/'
 path = '/content/drive/MyDrive/models/decoder_dataset'
 
-# def save_dataset(path):
-#     train_dataset.save(path)
+def save_dataset(path):
+    train_dataset.save(path)
 
-# save_dataset(path)
+save_dataset(path)
 
 
 
