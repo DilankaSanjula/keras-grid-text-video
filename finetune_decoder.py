@@ -21,7 +21,6 @@ def preprocess_image(image_path):
     image = tf.io.read_file(image_path)
     image = tf.image.decode_jpeg(image, channels=3)  # Assumes the images are in JPEG format
     image = tf.image.resize(image, (512, 512))       # Resize to the shape expected by the Decoder
-    image = image / 255.0  # Normalize the images to [0, 1] range
     image = (image / 127.5) - 1.0  # Rescaled the images to [-1, 1] range
     return image
 
