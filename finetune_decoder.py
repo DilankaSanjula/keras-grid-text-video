@@ -37,7 +37,7 @@ def generate_latents_from_filenames(image_paths):
         #print(image_path)
         prompt = os.path.splitext(os.path.basename(image_path))[0].replace('_', ' ')
         print(prompt)
-        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=40,num_steps=50)  # Generate latent for the prompt
+        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=7.5,num_steps=75)  # Generate latent for the prompt
         latents.append(latent)
     return latents
 
