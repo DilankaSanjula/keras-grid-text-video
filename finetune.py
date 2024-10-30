@@ -59,7 +59,7 @@ vae = tf.keras.Model(
     image_encoder.input,
     image_encoder.layers[-2].output,
 )
-noise_scheduler = NoiseScheduler()
+noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
 
@@ -89,7 +89,8 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
             print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
 # Define the checkpoint directory and frequency
-ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
+#ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
+ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_4x4'
 save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
