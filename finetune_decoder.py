@@ -37,8 +37,9 @@ def generate_latents_from_filenames(image_paths):
         #print(image_path)
         prompt = os.path.splitext(os.path.basename(image_path))[0].replace('_', ' ')
         print(prompt)
-        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=7.5,num_steps=75)  # Generate latent for the prompt
+        latent = stable_diffusion.text_to_latent(prompt,batch_size=1, unconditional_guidance_scale=7.5,num_steps=100)  # Generate latent for the prompt
         latents.append(latent)
+        
     return latents
 
 # Create a tf.data.Dataset that contains both latents and images
@@ -77,34 +78,34 @@ def check_dataset_shapes(dataset):
         tf.print("Latent shape:", tf.shape(latent))
 
 
-# train_dataset = create_latent_image_dataset(image_folder)
-# check_dataset_shapes(train_dataset)
+train_dataset = create_latent_image_dataset(image_folder)
+check_dataset_shapes(train_dataset)
 
-# #path = 'decoder_dataset/'
-path = '/content/drive/MyDrive/models/decoder_dataset'
+#path = 'decoder_dataset/'
+path = '/content/drive/MyDrive/models/decoder_dataset_2'
 
-# def save_dataset(path):
-#     train_dataset.save(path)
+def save_dataset(path):
+    train_dataset.save(path)
 
-# save_dataset(path)
+save_dataset(path)
 
 
 
-# # # Load the dataset
-reloaded_dataset = tf.data.Dataset.load(path)
+# # # # Load the dataset
+# reloaded_dataset = tf.data.Dataset.load(path)
 
-train_size = int(0.8 * len(reloaded_dataset))  # 80% for training
-val_size = len(reloaded_dataset) - train_size
+# train_size = int(0.8 * len(reloaded_dataset))  # 80% for training
+# val_size = len(reloaded_dataset) - train_size
 
-train_dataset = reloaded_dataset.take(train_size)
-val_dataset = reloaded_dataset.skip(train_size)
+# train_dataset = reloaded_dataset.take(train_size)
+# val_dataset = reloaded_dataset.skip(train_size)
 
-# # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
-loss_function = tf.keras.losses.MeanSquaredError()
+# # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
+# optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+# loss_function = tf.keras.losses.MeanSquaredError()
 
-decoder.compile(optimizer=optimizer, loss=loss_function)
+# decoder.compile(optimizer=optimizer, loss=loss_function)
 
-# If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=30)
-decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
+# # If shapes are correct, proceed to training
+# history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=30)
+# decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5')
