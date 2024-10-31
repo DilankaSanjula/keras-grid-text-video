@@ -11,7 +11,7 @@ grid_model = StableDiffusion(
 # We just reload the weights of the fine-tuned diffusion model.
 grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
 
-#grid_model.decoder.load_weights("/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5")
+grid_model.decoder.load_weights("/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5")
 
 prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
 images_to_generate = 1
@@ -19,7 +19,7 @@ outputs = {}
 
 for prompt in prompts:
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=5,num_steps=100
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=7.5,num_steps=100
     )
 
 generated_images = grid_model.latent_to_image(generated_latents)
