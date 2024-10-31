@@ -20,7 +20,7 @@ USE_MP = True
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = '/content/drive/MyDrive/webvid-10-dataset-2/2x2_grid_images'
+directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 #pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
@@ -90,7 +90,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_4x4'
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear'
 save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
@@ -115,7 +115,7 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-best_weights_filepath = os.path.join(ckpt_dir, '4x4_best_weights.h5')
+#best_weights_filepath = os.path.join(ckpt_dir, '4x4_best_weights.h5')
 
 # model_checkpoint_callback = ModelCheckpoint(
 #     filepath=best_weights_filepath,
