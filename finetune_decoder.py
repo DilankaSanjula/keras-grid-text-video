@@ -27,7 +27,7 @@ loss_function = tf.keras.losses.MeanSquaredError()
 decoder.compile(optimizer=optimizer, loss=loss_function)
 
 # If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=30)
+history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=15)
 # #decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4_new.h5')
 # decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4_new.h5')
 decoder.save('/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder.h5')
