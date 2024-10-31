@@ -21,7 +21,7 @@ train_dataset = reloaded_dataset.take(train_size)
 val_dataset = reloaded_dataset.skip(train_size)
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.0001)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
 loss_function = tf.keras.losses.MeanSquaredError()
 
 decoder.compile(optimizer=optimizer, loss=loss_function)
@@ -30,4 +30,4 @@ decoder.compile(optimizer=optimizer, loss=loss_function)
 history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=100)
 # #decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4_new.h5')
 # decoder.save('/content/drive/MyDrive/models/decoder_4x4/decoder_4x4_new.h5')
-decoder.save('/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder2.h5')
+decoder.save('/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder3.h5')
