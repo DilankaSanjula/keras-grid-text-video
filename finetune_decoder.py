@@ -83,7 +83,7 @@ check_dataset_shapes(train_dataset)
 
 #path = 'decoder_dataset/'
 #path = '/content/drive/MyDrive/models/decoder_dataset_2'
-path = '/content/drive/MyDrive/models/decoder_dataset_scalar'
+path = '/content/drive/MyDrive/stable_diffusion_4x4/decoder_dataset_scaled_linear_7.5_guidance'
 
 def save_dataset(path):
     train_dataset.save(path)
