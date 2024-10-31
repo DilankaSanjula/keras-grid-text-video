@@ -21,7 +21,7 @@ train_dataset = reloaded_dataset.take(train_size)
 val_dataset = reloaded_dataset.skip(train_size)
 
 # # Now `train_dataset` contains pairs of (latent, image) for training the decoder
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.00001)
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 loss_function = tf.keras.losses.MeanSquaredError()
 
 decoder.compile(optimizer=optimizer, loss=loss_function)
