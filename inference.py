@@ -9,7 +9,7 @@ grid_model = StableDiffusion(
 )
 
 # We just reload the weights of the fine-tuned diffusion model.
-grid_model.diffusion_model.load_weights("diffusion_model_4x4_scaled_linear_simpsons/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
+grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear_simpsons/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
 
 #grid_model.decoder.load_weights("/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5")
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder3.h5")
