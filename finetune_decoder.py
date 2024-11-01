@@ -31,5 +31,5 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 decoder.compile(optimizer=optimizer, loss=combined_loss, metrics=['accuracy'])
 
 # If shapes are correct, proceed to training
-history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=100)
+history = decoder.fit(train_dataset, validation_data=val_dataset, epochs=50)
 decoder.save('/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5')
