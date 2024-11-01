@@ -18,3 +18,9 @@ models/*
 
 webvid10m_dataset_summed_approach
 decoder_dataset
+
+simpson_dataset/gifs_homer_simpson_resized_128
+simpson_dataset/gifs_homer_simpson_resized_128_16F
+simpson_dataset/gifs_homer_simpson
+simpson_dataset/gifs_homer_simpson_resized_128_16F_Grid
+simpson_dataset/reconstruct_gifs

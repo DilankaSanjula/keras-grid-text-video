@@ -20,7 +20,11 @@ USE_MP = True
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+#directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+
+directory = '/content/drive/MyDrive/homer_simpson_resized_128_16F_Grid'
+
+
 #pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
@@ -90,7 +94,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear'
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear_simpsons'
 save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
