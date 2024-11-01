@@ -10,11 +10,11 @@ stable_diffusion = StableDiffusion(
     img_width=img_width, img_height=img_height
 )
 
-stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
+stable_diffusion.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear_simpsons/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
 
 decoder = Decoder(512, 512)
 
-image_folder = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+image_folder = '/content/drive/MyDrive/homer_simpson_resized_128_16F_Grid'
 #image_folder = 'webvid10m_dataset_summed_approach/2x2_grid_images'
 
 # Preprocessing function for the images
@@ -81,7 +81,7 @@ def check_dataset_shapes(dataset):
 train_dataset = create_latent_image_dataset(image_folder)
 check_dataset_shapes(train_dataset)
 
-path = '/content/drive/MyDrive/stable_diffusion_4x4/decoder_dataset_scaled_linear_7.5_guidance'
+path = '/content/drive/MyDrive/stable_diffusion_4x4/decoder_dataset_scaled_linear_7.5_guidance_simpsons'
 
 def save_dataset(path):
     train_dataset.save(path)
