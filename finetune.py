@@ -10,7 +10,7 @@ from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
 from sd_train_utils.prepare_tf_dataset import prepare_dataset
 from sd_train_utils.visualize_dataset import save_sample_batch_images
-from sd_train_utils.trainer import Trainer
+from sd_train_utils.trainer2 import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 # Constants
