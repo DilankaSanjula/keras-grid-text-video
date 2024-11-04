@@ -90,7 +90,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         if (epoch + 1) % self.save_freq == 0:  # Save every `save_freq` epochs
-            filepath = os.path.join(self.ckpt_dir, f'ckpt_epoch_{epoch + 1}.h5')
+            filepath = os.path.join(self.ckpt_dir, f'epoch_{epoch + 1}.h5')
             self.model.save_weights(filepath)
             print(f'Saving checkpoint at epoch {epoch + 1}: {filepath}')
 
