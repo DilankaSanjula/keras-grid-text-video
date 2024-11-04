@@ -38,30 +38,29 @@ class Trainer(tf.keras.Model):
         images = inputs["images"]
         encoded_text = inputs["encoded_text"]
         batch_size = tf.shape(images)[0]
-        RESOLUTION = 512
-        # Reshape 4x4 grid images into individual images
-        images = tf.reshape(images, [batch_size * 16, RESOLUTION // 4, RESOLUTION // 4, 3])
+        
+        # Reshape the batch of images to handle each 4x4 grid as individual images
+        images = tf.reshape(images, [batch_size * 16, images.shape[2], images.shape[3], images.shape[4]])
 
         with tf.GradientTape() as tape:
             # Forward pass through VAE
             latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
             latents = latents * 0.18215
+            
+            # Generate a single noise pattern for the entire grid of 16 images
+            noise = tf.random.normal([batch_size, latents.shape[1], latents.shape[2], latents.shape[3]])
+            
+            # Expand noise to apply the same noise to each sub-image in the grid
+            noise = tf.repeat(noise, repeats=16, axis=0)  # Now, noise is the same across all 16 images
 
-            # Resize latents to match diffusion model’s input shape
-            latents = tf.image.resize(latents, [64, 64])  # Resizing from (16, 16) to (64, 64)
+            # Sample a single timestep for each image in the batch (same for all 16 sub-images)
+            timesteps = tnp.random.randint(0, self.noise_scheduler.train_timesteps, (batch_size,))
+            timesteps = tf.repeat(timesteps, repeats=16)  # Repeat timestep across the 16 sub-images
 
-            # Add noise to the latents and compute the noisy latents
-            noise = tf.random.normal(tf.shape(latents))
-
-            # Sample a random timestep for each image in the batch
-            timesteps = tnp.random.randint(
-                0, self.noise_scheduler.train_timesteps, (batch_size * 16,)
-            )
-
-            # Apply noise to latents (same noise for all 16 sub-images)
+            # Add the same noise to all 16 images' latents
             noisy_latents = self.noise_scheduler.add_noise(tf.cast(latents, noise.dtype), noise, timesteps)
-
-            # Generate timestep embeddings
+            
+            # Generate timestep embeddings (same embedding for all sub-images in a grid)
             timestep_embedding = tf.map_fn(
                 lambda t: self.get_timestep_embedding(t), timesteps, dtype=tf.float32
             )
@@ -72,11 +71,11 @@ class Trainer(tf.keras.Model):
                 [noisy_latents, timestep_embedding, encoded_text], training=True
             )
             
-            # Calculate MSE loss for each individual image in the grid and then average
-            losses = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
-            individual_losses = losses(noise, model_pred)  # Calculate loss per image
-            grid_loss = tf.reduce_mean(individual_losses)  # Average loss across the grid images
-
+            # Calculate MSE loss for each individual image in the grid
+            mse_loss = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
+            individual_losses = mse_loss(noise, model_pred)  # Calculate loss per sub-image
+            grid_loss = tf.reduce_mean(individual_losses)  # Average loss across all sub-images
+            
             if self.use_mixed_precision:
                 grid_loss = self.optimizer.get_scaled_loss(grid_loss)
 
@@ -89,6 +88,7 @@ class Trainer(tf.keras.Model):
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         return {"loss": grid_loss}
+
 
 
     def get_timestep_embedding(self, timestep, dim=320, max_period=10000):
