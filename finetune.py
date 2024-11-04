@@ -22,7 +22,7 @@ USE_MP = True
 dataset_visualize_image_path = "sample_batch_images.png"
 #directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
-directory = '/content/drive/MyDrive/homer_simpson_resized_128_16F_Grid'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_single_images'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/models/ckpt_epoch_8.h5'
@@ -94,8 +94,8 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_4x4_scaled_linear_simpsons'
-save_frequency = 20  # Save every 10 epochs
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1'
+save_frequency = 10  # Save every 10 epochs
 
 # Fine-tuning
 epochs = 100  # Adjust the number of epochs as needed
@@ -119,15 +119,15 @@ optimizer = tf.keras.optimizers.experimental.AdamW(
 )
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
-#best_weights_filepath = os.path.join(ckpt_dir, '4x4_best_weights.h5')
+best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
-# model_checkpoint_callback = ModelCheckpoint(
-#     filepath=best_weights_filepath,
-#     save_weights_only=True,
-#     monitor='val_loss',  # You can change this to any metric you want to monitor
-#     mode='min',  # Use 'min' if you're monitoring loss, 'max' for accuracy or similar metrics
-#     save_best_only=True,  # Save only the best weights
-#     verbose=1  # Set to 1 to get a message when the model's weights are saved
-# )
+model_checkpoint_callback = ModelCheckpoint(
+    filepath=best_weights_filepath,
+    save_weights_only=True,
+    monitor='val_loss',  # Monitor validation loss
+    mode='min',  # Use 'min' to save weights with the lowest validation loss
+    save_best_only=True,  # Save only the best weights
+    verbose=1  # Prints a message when saving the best weights
+)
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback])
+diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback, model_checkpoint_callback])
