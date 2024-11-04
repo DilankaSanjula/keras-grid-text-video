@@ -16,7 +16,7 @@ grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
-prompts = ["4x4 grid image of homer simpson wakes up from sleep"]#
+prompts = ["2x2 grid image of homer simpson wakes up from sleep"]#
 images_to_generate = 1
 outputs = {}
 
@@ -32,7 +32,7 @@ print("Decoded image max value:", generated_images.max())
 
 for i, image_array in enumerate(generated_images):
     img = Image.fromarray(image_array)
-    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_2{i}.png"
+    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_2.png"
     img.save(file_path)
     print(f"Saved: {file_path}")
     
