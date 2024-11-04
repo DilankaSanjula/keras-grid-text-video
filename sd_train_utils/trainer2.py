@@ -47,27 +47,32 @@ class Trainer(tf.keras.Model):
             latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
             latents = latents * 0.18215
 
+            # Resize latents to match diffusion model’s input shape
+            latents = tf.image.resize(latents, [64, 64])  # Resizing from (16, 16) to (64, 64)
+
             # Add noise to the latents and compute the noisy latents
             noise = tf.random.normal(tf.shape(latents))
 
-            # Sample a random timestep for each image.
+            # Sample a random timestep for each image in the batch
             timesteps = tnp.random.randint(
                 0, self.noise_scheduler.train_timesteps, (batch_size * 16,)
             )
 
-            # Forward pass through diffusion model
-            noisy_latents = self.noise_scheduler.add_noise(
-                tf.cast(latents, noise.dtype), noise, timesteps
-            )
+            # Apply noise to latents (same noise for all 16 sub-images)
+            noisy_latents = self.noise_scheduler.add_noise(tf.cast(latents, noise.dtype), noise, timesteps)
+
+            # Generate timestep embeddings
             timestep_embedding = tf.map_fn(
                 lambda t: self.get_timestep_embedding(t), timesteps, dtype=tf.float32
             )
             timestep_embedding = tf.squeeze(timestep_embedding, 1)
+
+            # Forward pass through the diffusion model
             model_pred = self.diffusion_model(
                 [noisy_latents, timestep_embedding, encoded_text], training=True
             )
             
-            # Calculate MSE for each individual image in the grid and then average
+            # Calculate MSE loss for each individual image in the grid and then average
             losses = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
             individual_losses = losses(noise, model_pred)  # Calculate loss per image
             grid_loss = tf.reduce_mean(individual_losses)  # Average loss across the grid images
@@ -84,6 +89,7 @@ class Trainer(tf.keras.Model):
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
         return {"loss": grid_loss}
+
 
     def get_timestep_embedding(self, timestep, dim=320, max_period=10000):
         half = dim // 2
