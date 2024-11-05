@@ -26,7 +26,7 @@ dataset_visualize_image_path = "sample_batch_images.png"
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_2x2_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
 
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_1024_images'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_2048_images'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
@@ -98,7 +98,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_3_1024'
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_4_2048'
 save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
