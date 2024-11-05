@@ -116,17 +116,20 @@ def recreate_gifs_from_grids(grid_folder, output_folder, frame_size=(128, 128), 
 
 
 source_folder = 'gifs_homer_simpson_original'
-dest_folder = 'homer_simpson_4x4_images'
-process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size=4)
+# dest_folder = 'homer_simpson_4x4_images'
+# process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size=4)
 
-dest_folder = 'homer_simpson_2x2_images'
-process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=2)
+# dest_folder = 'homer_simpson_2x2_images'
+# process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=2)
 
-dest_folder = 'homer_simpson_single_images'
-process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=1)
+# dest_folder = 'homer_simpson_single_images'
+# process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=1)
 
 dest_folder = 'homer_simpson_4x4_1024_images'
-process_gifs(source_folder, dest_folder, target_size=(1024, 1024), grid_size=4)
+process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=4)
+
+dest_folder = 'homer_simpson_4x4_2048_images'
+process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=4)
 
 
 # Example usage
