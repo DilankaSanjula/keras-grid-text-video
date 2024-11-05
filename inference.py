@@ -11,13 +11,13 @@ grid_model = StableDiffusion(
 # We just reload the weights of the fine-tuned diffusion model.
 #grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5")
 #grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_2/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
-grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_3/ckpt_epoch_100.h5_2x2_diffusion_model.h5")
+grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_3_1024/epoch_80.h5_2x2_diffusion_model.h5")
 
 #grid_model.decoder.load_weights("/content/drive/MyDrive/models/decoder_4x4/decoder_4x4.h5")
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
-prompts = ["4x4 grid image of homer simpson driving while speaking","4x4 grid image of homer simpson tries calling using a telephone like device","4x4 grid image of homer simpson smoking"]#
+prompts = ["4x4 grid image of homer simpson driving while speaking"]
 images_to_generate = 1
 outputs = {}
 
@@ -33,7 +33,7 @@ print("Decoded image max value:", generated_images.max())
 
 for i, image_array in enumerate(generated_images):
     img = Image.fromarray(image_array)
-    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_3_{i}.png"
+    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_3_1024_{i}.png"
     img.save(file_path)
     print(f"Saved: {file_path}")
     
