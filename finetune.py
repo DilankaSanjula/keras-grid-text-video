@@ -10,7 +10,7 @@ from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
 from sd_train_utils.prepare_tf_dataset import prepare_dataset
 from sd_train_utils.visualize_dataset import save_sample_batch_images
-from sd_train_utils.trainer2 import Trainer
+from sd_train_utils.trainer import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 
 # Constants
@@ -24,7 +24,9 @@ dataset_visualize_image_path = "sample_batch_images.png"
 
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_single_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_2x2_images'
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
+#directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
+
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_1024_images'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
@@ -96,7 +98,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_3'
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_3_1024'
 save_frequency = 20  # Save every 10 epochs
 
 # Fine-tuning
