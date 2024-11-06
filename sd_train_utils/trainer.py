@@ -23,7 +23,7 @@ class Trainer(tf.keras.Model):
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False  # Ensure VAE is trainable
+        #self.vae.trainable = False  # Ensure VAE is trainable
         # No layer freezing - train all layers
         self.unfreeze_all_layers()
 
@@ -41,7 +41,7 @@ class Trainer(tf.keras.Model):
 
         with tf.GradientTape() as tape:
             # Forward pass through VAE
-            latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
+            latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
             latents = latents * 0.18215
 
             # Add noise to the latents and compute the noisy latents
@@ -68,7 +68,8 @@ class Trainer(tf.keras.Model):
                 loss = self.optimizer.get_scaled_loss(loss)
 
         # Compute gradients only for the diffusion model (VAE is not trainable)
-        trainable_vars = self.diffusion_model.trainable_variables
+        #trainable_vars = self.diffusion_model.trainable_variables
+        trainable_vars = self.diffusion_model.trainable_variables + self.vae.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)
@@ -106,12 +107,12 @@ class Trainer(tf.keras.Model):
         )
         print(f"Diffusion model weights saved to {diffusion_model_filepath}")
 
-        # # Save the VAE's weights
-        # vae_filepath = filepath + "_vae_both.h5"
-        # self.vae.save_weights(
-        #     filepath=vae_filepath,
-        #     overwrite=overwrite,
-        #     save_format=save_format,
-        #     options=options,
-        # )
-        # print(f"VAE model weights saved to {vae_filepath}")
+        # Save the VAE's weights
+        vae_filepath = filepath + "_vae.h5"
+        self.vae.save_weights(
+            filepath=vae_filepath,
+            overwrite=overwrite,
+            save_format=save_format,
+            options=options,
+        )
+        print(f"VAE model weights saved to {vae_filepath}")
