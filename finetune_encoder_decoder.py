@@ -93,7 +93,7 @@ decoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
 vae_model.fit(
     train_dataset,
     validation_data=val_dataset,
-    epochs=200,
+    epochs=2000,
     callbacks=[encoder_checkpoint, decoder_checkpoint]
 )
 
