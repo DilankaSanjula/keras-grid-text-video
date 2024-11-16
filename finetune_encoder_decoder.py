@@ -5,6 +5,7 @@ from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.data_loader import create_dataframe
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.mixed_precision import set_global_policy
+from tensorflow.keras.mixed_precision import LossScaleOptimizer
 
 # Enable mixed precision
 set_global_policy("mixed_float16")
@@ -74,7 +75,18 @@ def vae_loss(y_true, y_pred):
     return reconstruction_loss_fn(y_true, y_pred)
 
 vae_model = VAE(encoder=encoder, decoder=decoder)
-vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss=vae_loss)
+
+
+
+base_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
+
+# Enable Loss Scaling
+optimizer = LossScaleOptimizer(base_optimizer)
+# Compile the model with mixed precision optimizer
+vae_model.compile(optimizer=optimizer, loss=vae_loss)
+
+
+# vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss=vae_loss)
 
 # Custom callback to save best encoder weights
 class SaveEncoderCallback(tf.keras.callbacks.Callback):
