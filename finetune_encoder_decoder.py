@@ -3,6 +3,7 @@ import tensorflow as tf
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.data_loader import create_dataframe
+from sklearn.model_selection import train_test_split
 
 # Enable memory growth for GPUs
 gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -16,7 +17,6 @@ if gpus:
 # Constants
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 256  # Reduced resolution to save memory
-USE_MP = True
 
 # Paths
 directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_2048_images'
@@ -25,7 +25,10 @@ directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4
 data_frame = create_dataframe(directory)
 image_paths = np.array(data_frame["image_path"])  # Extract paths to images
 
-# Load 4x4 grid images and prepare the dataset
+# Split the data into training and validation sets
+train_paths, val_paths = train_test_split(image_paths, test_size=0.2, random_state=42)
+
+# Load and preprocess images
 def load_and_preprocess_image(file_path):
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
@@ -40,13 +43,9 @@ def prepare_grid_dataset(image_paths, batch_size=4):  # Reduced batch size
     dataset = dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     return dataset
 
-# Create the dataset for training the VAE
-grid_dataset = prepare_grid_dataset(image_paths)
-
-# Enable memory growth
-gpus = tf.config.experimental.list_physical_devices("GPU")
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
+# Create datasets
+train_dataset = prepare_grid_dataset(train_paths, batch_size=4)
+val_dataset = prepare_grid_dataset(val_paths, batch_size=4)
 
 # Initialize the Encoder and Decoder
 encoder = ImageEncoder(download_weights=False)
@@ -73,9 +72,31 @@ def vae_loss(y_true, y_pred):
 vae_model = VAE(encoder=encoder, decoder=decoder)
 vae_model.compile(optimizer='adam', loss=vae_loss)
 
-# Train the model
-vae_model.fit(grid_dataset, epochs=50)
+# Define callbacks to save best models based on validation loss
+encoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+    filepath="/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5",
+    monitor="val_loss",  # Monitor validation loss
+    save_best_only=True,
+    save_weights_only=True,
+    verbose=1
+)
 
-# Save weights
-vae_model.encoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_encoder.h5")
-vae_model.decoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_decoder.h5")
+decoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+    filepath="/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5",
+    monitor="val_loss",  # Monitor validation loss
+    save_best_only=True,
+    save_weights_only=True,
+    verbose=1
+)
+
+# Train the model with validation
+vae_model.fit(
+    train_dataset,
+    validation_data=val_dataset,
+    epochs=200,
+    callbacks=[encoder_checkpoint, decoder_checkpoint]
+)
+
+# Save the final weights as well (optional)
+vae_model.encoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_encoder.h5")
+vae_model.decoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_decoder.h5")
