@@ -24,14 +24,15 @@ def load_and_preprocess_image(file_path):
     image = tf.image.decode_jpeg(image, channels=3)
     # Resize to desired resolution (512x512)
     image = tf.image.resize(image, [RESOLUTION, RESOLUTION])
-    # Normalize to [0, 1]
-    #image = image / 255.0
+    # Normalize to [-1, 1]
     image = (image / 127.5) - 1.0
     return image
 
 def prepare_grid_dataset(image_paths, batch_size=8):
     dataset = tf.data.Dataset.from_tensor_slices(image_paths)
     dataset = dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
+    # Provide input as both x and y for reconstruction task
+    dataset = dataset.map(lambda x: (x, x))
     dataset = dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
     return dataset
 
@@ -57,16 +58,24 @@ class VAE(tf.keras.Model):
 
 # Custom Loss Function for VAE Training
 reconstruction_loss_fn = tf.keras.losses.MeanSquaredError()
-def vae_loss(inputs, reconstructed):
-    return reconstruction_loss_fn(inputs, reconstructed)
+
+# Define the VAE loss function
+def vae_loss(y_true, y_pred):
+    return reconstruction_loss_fn(y_true, y_pred)
 
 # Initialize the VAE
 vae_model = VAE(encoder=encoder, decoder=decoder)
 vae_model.compile(optimizer='adam', loss=vae_loss)
 
 # Train the VAE
-vae_model.fit(grid_dataset, epochs=50, batch_size=8)  # Adjust epochs and batch size as needed
+vae_model.fit(grid_dataset, epochs=50)  # Dataset already batches data
 
 # Save Encoder and Decoder Weights Separately
-vae_model.encoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_encoder.h5")
-vae_model.decoder.save_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_decoder.h5")
+encoder_weights_path = "/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_encoder.h5"
+decoder_weights_path = "/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/trained_vae_decoder.h5"
+
+vae_model.encoder.save_weights(encoder_weights_path)
+vae_model.decoder.save_weights(decoder_weights_path)
+
+print(f"Encoder weights saved to {encoder_weights_path}")
+print(f"Decoder weights saved to {decoder_weights_path}")
