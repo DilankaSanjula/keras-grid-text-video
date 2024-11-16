@@ -28,7 +28,7 @@ def load_and_preprocess_image(file_path):
     image = (image / 127.5) - 1.0
     return image
 
-def prepare_grid_dataset(image_paths, batch_size=8):
+def prepare_grid_dataset(image_paths, batch_size=4):
     dataset = tf.data.Dataset.from_tensor_slices(image_paths)
     dataset = dataset.map(load_and_preprocess_image, num_parallel_calls=tf.data.AUTOTUNE)
     # Provide input as both x and y for reconstruction task
