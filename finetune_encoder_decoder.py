@@ -51,10 +51,6 @@ val_dataset = prepare_grid_dataset(val_paths, batch_size=4)
 encoder = ImageEncoder(download_weights=False)
 decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION, download_weights=False)
 
-# Load the best weights for encoder and decoder
-encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
-decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
-
 # Define the VAE model
 class VAE(tf.keras.Model):
     def __init__(self, encoder, decoder, **kwargs):
@@ -108,7 +104,9 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
     verbose=1
 )
 
-
+# Load the best weights for encoder and decoder
+vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
+vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
 
 
 # Set the learning rate to the last reduced value
