@@ -18,6 +18,46 @@ if gpus:
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 
+# Define the VAE model with gradient accumulation
+class VAE(tf.keras.Model):
+    def __init__(self, encoder, decoder, accumulation_steps=8, **kwargs):
+        super(VAE, self).__init__(**kwargs)
+        self.encoder = encoder
+        self.decoder = decoder
+        self.accumulation_steps = accumulation_steps
+        self.accumulated_gradients = None
+        self.step_counter = 0  # Track steps for gradient accumulation
+
+    def call(self, inputs):
+        latents = self.encoder(inputs)
+        reconstructed = self.decoder(latents)
+        return reconstructed
+
+    def train_step(self, data):
+        x, y = data  # Unpack the data
+        with tf.GradientTape() as tape:
+            y_pred = self(x, training=True)  # Forward pass
+            loss = self.compiled_loss(y, y_pred, regularization_losses=self.losses)
+
+        # Compute gradients
+        gradients = tape.gradient(loss, self.trainable_weights)
+
+        # Accumulate gradients
+        if self.accumulated_gradients is None:
+            self.accumulated_gradients = [tf.zeros_like(g) for g in gradients]
+        self.accumulated_gradients = [ag + g for ag, g in zip(self.accumulated_gradients, gradients)]
+
+        # Apply accumulated gradients every `accumulation_steps`
+        self.step_counter += 1
+        if self.step_counter % self.accumulation_steps == 0:
+            self.optimizer.apply_gradients(zip(self.accumulated_gradients, self.trainable_weights))
+            self.accumulated_gradients = None  # Reset accumulated gradients
+            self.step_counter = 0
+
+        # Update metrics (including loss)
+        self.compiled_metrics.update_state(y, y_pred)
+        return {m.name: m.result() for m in self.metrics}
+
 # Paths
 directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
 
@@ -51,7 +91,7 @@ val_dataset = prepare_grid_dataset(val_paths, batch_size=2)
 encoder = ImageEncoder(download_weights=False)
 decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION, download_weights=False)
 
-# Define the VAE model with gradient accumulation
+# Instantiate the VAE model
 vae_model = VAE(encoder=encoder, decoder=decoder, accumulation_steps=8)
 vae_model.compile(optimizer='adam', loss='mse')
 
