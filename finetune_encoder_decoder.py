@@ -48,8 +48,8 @@ def prepare_grid_dataset(image_paths, batch_size=4):
     return dataset
 
 # Create datasets
-train_dataset = prepare_grid_dataset(train_paths, batch_size=4)
-val_dataset = prepare_grid_dataset(val_paths, batch_size=4)
+train_dataset = prepare_grid_dataset(train_paths, batch_size=2)
+val_dataset = prepare_grid_dataset(val_paths, batch_size=2)
 
 # Initialize the Encoder and Decoder
 encoder = ImageEncoder(download_weights=False)
