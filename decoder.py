@@ -34,19 +34,22 @@ class Decoder(keras.Sequential):
                 PaddedConv2D(4, 1),
                 PaddedConv2D(512, 3, padding=1),
                 ResnetBlock(512),
+                keras.layers.Dropout(0.2),  # Added dropout
                 AttentionBlock(512),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                ResnetBlock(512),
+                keras.layers.Dropout(0.3),  # Added dropout
                 ResnetBlock(512),
                 keras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
                 ResnetBlock(512),
+                keras.layers.Dropout(0.3),  # Added dropout
                 ResnetBlock(512),
                 ResnetBlock(512),
                 keras.layers.UpSampling2D(2),
                 PaddedConv2D(512, 3, padding=1),
                 ResnetBlock(256),
+                keras.layers.Dropout(0.4),  # Added dropout
                 ResnetBlock(256),
                 ResnetBlock(256),
                 keras.layers.UpSampling2D(2),
