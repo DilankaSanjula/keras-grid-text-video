@@ -91,7 +91,7 @@ decoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
 
 early_stopping = tf.keras.callbacks.EarlyStopping(
     monitor="val_loss",
-    patience=30,
+    patience=40,
     restore_best_weights=True,
     verbose=1
 )
@@ -103,6 +103,14 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
     min_lr=1e-6,
     verbose=1
 )
+
+
+# Load the best weights for encoder and decoder
+vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
+vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
+
+# Set the learning rate to the last reduced value
+vae_model.optimizer.lr.assign(6.25e-05)
 
 # Train the model
 vae_model.fit(
