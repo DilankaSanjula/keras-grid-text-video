@@ -72,20 +72,60 @@ def vae_loss(y_true, y_pred):
 vae_model = VAE(encoder=encoder, decoder=decoder)
 vae_model.compile(optimizer='adam', loss=vae_loss)
 
+# Custom callback to save best encoder weights
+class SaveEncoderCallback(tf.keras.callbacks.Callback):
+    def __init__(self, filepath, monitor="val_loss", verbose=1):
+        super(SaveEncoderCallback, self).__init__()
+        self.filepath = filepath
+        self.monitor = monitor
+        self.best = float("inf")
+        self.verbose = verbose
+
+    def on_epoch_end(self, epoch, logs=None):
+        current = logs.get(self.monitor)
+        if current is None:
+            return
+
+        if current < self.best:
+            self.best = current
+            self.model.encoder.save_weights(self.filepath)
+            if self.verbose > 0:
+                print(
+                    f"Epoch {epoch + 1}: {self.monitor} improved to {current:.5f}, saving encoder weights to {self.filepath}"
+                )
+
+# Custom callback to save best decoder weights
+class SaveDecoderCallback(tf.keras.callbacks.Callback):
+    def __init__(self, filepath, monitor="val_loss", verbose=1):
+        super(SaveDecoderCallback, self).__init__()
+        self.filepath = filepath
+        self.monitor = monitor
+        self.best = float("inf")
+        self.verbose = verbose
+
+    def on_epoch_end(self, epoch, logs=None):
+        current = logs.get(self.monitor)
+        if current is None:
+            return
+
+        if current < self.best:
+            self.best = current
+            self.model.decoder.save_weights(self.filepath)
+            if self.verbose > 0:
+                print(
+                    f"Epoch {epoch + 1}: {self.monitor} improved to {current:.5f}, saving decoder weights to {self.filepath}"
+                )
+
 # Define callbacks
-encoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+encoder_checkpoint = SaveEncoderCallback(
     filepath="/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5",
     monitor="val_loss",
-    save_best_only=True,
-    save_weights_only=True,
     verbose=1
 )
 
-decoder_checkpoint = tf.keras.callbacks.ModelCheckpoint(
+decoder_checkpoint = SaveDecoderCallback(
     filepath="/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5",
     monitor="val_loss",
-    save_best_only=True,
-    save_weights_only=True,
     verbose=1
 )
 
@@ -103,14 +143,6 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
     min_lr=1e-6,
     verbose=1
 )
-
-# Load the best weights for encoder and decoder
-vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_encoder.h5")
-vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_decoder.h5")
-
-
-# Set the learning rate to the last reduced value
-vae_model.optimizer.lr.assign(6.25e-05)
 
 # Train the model
 vae_model.fit(
