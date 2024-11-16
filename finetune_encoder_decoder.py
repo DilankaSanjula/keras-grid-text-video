@@ -3,10 +3,15 @@ import tensorflow as tf
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.decoder import Decoder
 from sd_train_utils.data_loader import create_dataframe
-from tensorflow.keras.mixed_precision import set_global_policy
 
-# Enable mixed precision training
-set_global_policy("mixed_float16")
+# Enable memory growth for GPUs
+gpus = tf.config.experimental.list_physical_devices("GPU")
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(f"Memory growth could not be set: {e}")
 
 # Constants
 MAX_PROMPT_LENGTH = 77
