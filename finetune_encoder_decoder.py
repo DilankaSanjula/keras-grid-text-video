@@ -72,6 +72,27 @@ def vae_loss(y_true, y_pred):
 vae_model = VAE(encoder=encoder, decoder=decoder)
 vae_model.compile(optimizer='adam', loss=vae_loss)
 
+# Custom Gradient Accumulation Callback
+class GradientAccumulation(tf.keras.callbacks.Callback):
+    def __init__(self, accumulation_steps=8):
+        super(GradientAccumulation, self).__init__()
+        self.accumulation_steps = accumulation_steps
+        self.step = 0
+        self.accumulated_gradients = None
+
+    def on_train_batch_begin(self, batch, logs=None):
+        if self.step % self.accumulation_steps == 0:
+            self.accumulated_gradients = [tf.zeros_like(w) for w in self.model.trainable_weights]
+
+    def on_train_batch_end(self, batch, logs=None):
+        gradients = self.model.optimizer.get_gradients(self.model.total_loss, self.model.trainable_weights)
+        self.accumulated_gradients = [ag + g for ag, g in zip(self.accumulated_gradients, gradients)]
+
+        if (self.step + 1) % self.accumulation_steps == 0:
+            self.model.optimizer.apply_gradients(zip(self.accumulated_gradients, self.model.trainable_weights))
+            self.model.optimizer.iterations.assign_add(1)  # Increment optimizer iteration
+        self.step += 1
+
 # Custom callback to save best encoder weights
 class SaveEncoderCallback(tf.keras.callbacks.Callback):
     def __init__(self, filepath, monitor="val_loss", verbose=1):
@@ -117,6 +138,8 @@ class SaveDecoderCallback(tf.keras.callbacks.Callback):
                 )
 
 # Define callbacks
+gradient_accumulation = GradientAccumulation(accumulation_steps=8)
+
 encoder_checkpoint = SaveEncoderCallback(
     filepath="/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5",
     monitor="val_loss",
@@ -144,12 +167,12 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
     verbose=1
 )
 
-# Train the model
+# Train the model with Gradient Accumulation
 vae_model.fit(
     train_dataset,
     validation_data=val_dataset,
     epochs=1500,
-    callbacks=[encoder_checkpoint, decoder_checkpoint, early_stopping, reduce_lr]
+    callbacks=[gradient_accumulation, encoder_checkpoint, decoder_checkpoint, early_stopping, reduce_lr]
 )
 
 # Save the final weights as well
