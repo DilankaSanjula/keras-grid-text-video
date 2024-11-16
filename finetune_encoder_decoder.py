@@ -108,7 +108,7 @@ reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
 vae_model.fit(
     train_dataset,
     validation_data=val_dataset,
-    epochs=200,
+    epochs=1500,
     callbacks=[encoder_checkpoint, decoder_checkpoint, early_stopping, reduce_lr]
 )
 
