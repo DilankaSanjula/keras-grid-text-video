@@ -85,12 +85,21 @@ class GradientAccumulation(tf.keras.callbacks.Callback):
             self.accumulated_gradients = [tf.zeros_like(w) for w in self.model.trainable_weights]
 
     def on_train_batch_end(self, batch, logs=None):
-        gradients = self.model.optimizer.get_gradients(self.model.total_loss, self.model.trainable_weights)
+        # Compute gradients using GradientTape
+        with tf.GradientTape() as tape:
+            y_pred = self.model(self.model._current_inputs, training=True)
+            loss = self.model.compiled_loss(self.model._current_targets, y_pred)
+
+        gradients = tape.gradient(loss, self.model.trainable_weights)
+
+        # Accumulate gradients
         self.accumulated_gradients = [ag + g for ag, g in zip(self.accumulated_gradients, gradients)]
 
+        # Apply accumulated gradients every `accumulation_steps`
         if (self.step + 1) % self.accumulation_steps == 0:
             self.model.optimizer.apply_gradients(zip(self.accumulated_gradients, self.model.trainable_weights))
-            self.model.optimizer.iterations.assign_add(1)  # Increment optimizer iteration
+            self.model.optimizer.iterations.assign_add(1)
+            self.accumulated_gradients = None  # Reset gradients
         self.step += 1
 
 # Custom callback to save best encoder weights
