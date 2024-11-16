@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 from keras_cv.models.stable_diffusion.decoder import Decoder
-
+import os
 
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
@@ -70,7 +70,7 @@ original_image = tf.squeeze(original_image, axis=0)
 reconstructed_image = tf.squeeze(reconstructed_image, axis=0)
 
 # Save images to files
-def save_images_to_file(original, reconstructed, output_dir="/content/drive/MyDrive/stable_diffusion_4x4/outputs"):
+def save_images_to_file(original, reconstructed, output_dir="/content/drive/MyDrive/stable_diffusion_4x4/dataset/"):
     os.makedirs(output_dir, exist_ok=True)  # Create directory if it doesn't exist
     
     # Undo normalization for display
