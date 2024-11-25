@@ -92,6 +92,7 @@ def combined_loss(y_true, y_pred):
 # Optimizer
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
+accumulated_gradients = [tf.zeros_like(var) for var in vae_model.trainable_variables]
 # Gradient Accumulation
 @tf.function
 def train_step(inputs, targets, accumulated_gradients):
