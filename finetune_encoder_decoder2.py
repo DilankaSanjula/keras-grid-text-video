@@ -123,6 +123,15 @@ def save_best_weights(epoch, val_loss):
         )
         print(f"Epoch {epoch + 1}: Saved best weights with val_loss = {val_loss:.5f}")
 
+@tf.function
+def debug_gradients(inputs, targets):
+    with tf.GradientTape() as tape:
+        predictions = vae_model(inputs, training=True)
+        loss = combined_loss(targets, predictions)
+    gradients = tape.gradient(loss, vae_model.trainable_variables)
+    for grad, var in zip(gradients, vae_model.trainable_variables):
+        tf.print(var.name, "Gradient Mean:", tf.reduce_mean(grad), "Gradient Stddev:", tf.math.reduce_std(grad))
+
 # Training Loop
 for epoch in range(EPOCHS):
     print(f"Epoch {epoch + 1}/{EPOCHS}")
@@ -134,6 +143,12 @@ for epoch in range(EPOCHS):
         accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
 
     for step, (inputs, targets) in enumerate(train_dataset):
+        # Debug gradients for the first step of each epoch
+        if step == 0:
+            print("Inspecting gradients for step 0...")
+            debug_gradients(inputs, targets)
+
+        # Standard training process
         loss, gradients = train_step(inputs, targets)
         for i in range(len(accumulated_gradients)):
             accumulated_gradients[i].assign_add(gradients[i])
