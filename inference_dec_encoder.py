@@ -28,6 +28,11 @@ class VAE(tf.keras.Model):
     
 vae_model = VAE(encoder=encoder, decoder=decoder)
 
+# Build the encoder and decoder by calling them with dummy inputs
+dummy_input = tf.random.normal([1, RESOLUTION, RESOLUTION, 3])  # Example input with batch size of 1
+vae_model.encoder(dummy_input)  # Build encoder
+vae_model.decoder(tf.random.normal([1, RESOLUTION // 8, RESOLUTION // 8, 4]))  # Build decoder
+
 vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
 vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
 
