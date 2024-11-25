@@ -9,8 +9,8 @@ from tensorflow.keras.applications import VGG16
 # Constants
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
-BATCH_SIZE = 2  # Actual batch size
-ACCUMULATION_STEPS = 2  # Simulated batch size = BATCH_SIZE * ACCUMULATION_STEPS
+BATCH_SIZE = 2  # Actual batch size in memory
+ACCUMULATION_STEPS = 2  # Effective batch size = BATCH_SIZE * ACCUMULATION_STEPS
 LEARNING_RATE = 1e-4
 EPOCHS = 1000
 
@@ -92,19 +92,17 @@ def combined_loss(y_true, y_pred):
 # Optimizer
 optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
+# Initialize accumulated gradients once
 accumulated_gradients = [tf.zeros_like(var) for var in vae_model.trainable_variables]
+
 # Gradient Accumulation
 @tf.function
-def train_step(inputs, targets, accumulated_gradients):
+def train_step(inputs, targets):
     with tf.GradientTape() as tape:
         predictions = vae_model(inputs, training=True)
         loss = combined_loss(targets, predictions)
-
     gradients = tape.gradient(loss, vae_model.trainable_variables)
-    accumulated_gradients = [
-        accum_g + grad for accum_g, grad in zip(accumulated_gradients, gradients)
-    ]
-    return loss, accumulated_gradients
+    return loss, gradients
 
 @tf.function
 def apply_gradients(accumulated_gradients):
@@ -125,25 +123,30 @@ def save_best_weights(epoch, val_loss):
         )
         print(f"Epoch {epoch + 1}: Saved best weights with val_loss = {val_loss:.5f}")
 
-# Training Loop with Gradient Accumulation and Weight Saving
+# Training Loop
 for epoch in range(EPOCHS):
     print(f"Epoch {epoch + 1}/{EPOCHS}")
-    accumulated_gradients = [
-        tf.zeros_like(var) for var in vae_model.trainable_variables
-    ]
     train_loss = 0
     train_steps = 0
 
+    # Reset accumulated gradients to zero at the start of the epoch
+    for i in range(len(accumulated_gradients)):
+        accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
+
     for step, (inputs, targets) in enumerate(train_dataset):
-        loss, accumulated_gradients = train_step(inputs, targets, accumulated_gradients)
+        loss, gradients = train_step(inputs, targets)
+        for i in range(len(accumulated_gradients)):
+            accumulated_gradients[i].assign_add(gradients[i])
+
         train_loss += loss
         train_steps += 1
 
+        # Apply accumulated gradients every ACCUMULATION_STEPS
         if (step + 1) % ACCUMULATION_STEPS == 0:
             apply_gradients(accumulated_gradients)
-            accumulated_gradients = [
-                tf.zeros_like(var) for var in vae_model.trainable_variables
-            ]
+            # Reset accumulated gradients after applying them
+            for i in range(len(accumulated_gradients)):
+                accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
 
     avg_train_loss = train_loss / train_steps
 
@@ -156,14 +159,13 @@ for epoch in range(EPOCHS):
         val_steps += 1
 
     avg_val_loss = val_loss / val_steps
-
     print(f"Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}")
 
-    # Save best weights based on validation loss
+    # Save weights
     save_best_weights(epoch, avg_val_loss)
 
-    # Early stopping logic (if desired)
-    if avg_val_loss >= best_val_loss and epoch > 40:  # Allow some patience before stopping
+    # Early stopping logic
+    if avg_val_loss >= best_val_loss and epoch > 40:
         print("Early stopping triggered")
         break
 
