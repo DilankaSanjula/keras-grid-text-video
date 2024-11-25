@@ -7,6 +7,11 @@ from decoder import Decoder
 from sd_train_utils.data_loader import create_dataframe
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.mixed_precision import set_global_policy
+from tensorflow.keras.applications import VGG16
+
+vgg = VGG16(include_top=False, weights="imagenet", input_shape=(512, 512, 3))
+vgg.trainable = False
+
 
 # Enable memory growth for GPUs
 gpus = tf.config.experimental.list_physical_devices("GPU")
@@ -72,13 +77,28 @@ reconstruction_loss_fn = tf.keras.losses.MeanSquaredError()
 def vae_loss(y_true, y_pred):
     return reconstruction_loss_fn(y_true, y_pred)
 
+def perceptual_loss(y_true, y_pred):
+    true_features = vgg(y_true)
+    pred_features = vgg(y_pred)
+    return tf.reduce_mean(tf.abs(true_features - pred_features))
+
+def ssim_loss(y_true, y_pred):
+    return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
+
+def combined_loss(y_true, y_pred):
+    mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
+    perceptual = perceptual_loss(y_true, y_pred)
+    ssim = ssim_loss(y_true, y_pred)
+    return mse + 0.1 * perceptual + 0.1 * ssim
+
+
 vae_model = VAE(encoder=encoder, decoder=decoder)
 
 
 
 base_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
-vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss=vae_loss)
+vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss=combined_loss)
 
 # Custom callback to save best encoder weights
 class SaveEncoderCallback(tf.keras.callbacks.Callback):
