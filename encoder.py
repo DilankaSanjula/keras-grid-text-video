@@ -10,7 +10,7 @@ class ImageEncoder(keras.Model):
         super(ImageEncoder, self).__init__()
         
         # Initial feature extraction
-        self.initial_conv = PaddedConv2D(128, 3, padding=1, strides=1)  # (512, 512, 128)
+        self.initial_conv = PaddedConv2D(128, 3, padding=1, strides=1)
         self.resblock1 = ResnetBlock(128)
         self.resblock2 = ResnetBlock(128)
 
@@ -36,13 +36,13 @@ class ImageEncoder(keras.Model):
         self.activation = keras.layers.Activation("swish")
 
         # Bottleneck adjustment to (64, 64, 4)
-        self.bottleneck_conv1 = PaddedConv2D(8, 3, padding=1)  # Reduce channels to 8
-        self.bottleneck_conv2 = PaddedConv2D(8, 1)  # Keep dimensions the same
+        self.bottleneck_conv1 = PaddedConv2D(8, 3, padding=1)
+        self.bottleneck_conv2 = PaddedConv2D(8, 1)
         self.bottleneck_adjustment = keras.layers.Lambda(lambda x: x[..., :4] * 0.18215)
 
     def call(self, inputs):
         # Initial feature extraction
-        x1 = self.initial_conv(inputs)  # (512, 512, 128)
+        x1 = self.initial_conv(inputs)
         x1 = self.resblock1(x1)
         x1 = self.resblock2(x1)
 
@@ -65,15 +65,19 @@ class ImageEncoder(keras.Model):
         x4 = self.attention1(x4)
         x4 = self.resblock9(x4)
 
-        # Add skip connections
-        x4 = keras.layers.Concatenate()([x4, x3])  # Skip connection from (128, 128, 256)
-        x4 = keras.layers.Concatenate()([x4, x2])  # Skip connection from (256, 256, 128)
+        # Downsample x3 to match x4 dimensions
+        x3_downsampled = keras.layers.Conv2D(512, 3, strides=2, padding="same")(x3)  # (64, 64, 512)
+        x4 = keras.layers.Concatenate()([x4, x3_downsampled])
+
+        # Downsample x2 to match x4 dimensions
+        x2_downsampled = keras.layers.Conv2D(512, 3, strides=4, padding="same")(x2)  # (64, 64, 512)
+        x4 = keras.layers.Concatenate()([x4, x2_downsampled])
 
         # Bottleneck preparation
         x4 = self.norm(x4)
         x4 = self.activation(x4)
-        x4 = self.bottleneck_conv1(x4)  # (64, 64, 8)
-        x4 = self.bottleneck_conv2(x4)  # (64, 64, 8)
+        x4 = self.bottleneck_conv1(x4)
+        x4 = self.bottleneck_conv2(x4)
 
         # Final bottleneck adjustment
-        return self.bottleneck_adjustment(x4)  # (64, 64, 4)
+        return self.bottleneck_adjustment(x4)
