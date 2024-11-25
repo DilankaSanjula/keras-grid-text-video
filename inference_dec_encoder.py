@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
-from keras_cv.models.stable_diffusion.decoder import Decoder
+# from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
+# from keras_cv.models.stable_diffusion.decoder import Decoder
+from encoder import ImageEncoder
+from decoder import Decoder
 import os
 
 MAX_PROMPT_LENGTH = 77
