@@ -26,47 +26,40 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
 
 
 class Decoder(keras.Sequential):
-    def __init__(self, img_height, img_width, name=None, download_weights=True):
+    def __init__(self, img_height=512, img_width=512):
         super().__init__(
             [
-                keras.layers.Input((img_height // 8, img_width // 8, 4)),
+                # Input layer
+                keras.layers.Input(shape=(img_height // 8, img_width // 8, 4)),
+
+                # Scale latent space back to full range
                 keras.layers.Rescaling(1.0 / 0.18215),
-                PaddedConv2D(4, 1),
-                PaddedConv2D(512, 3, padding=1),
+                PaddedConv2D(8, 1),  # Adjust input channels (64, 64, 8)
+                PaddedConv2D(512, 3, padding=1),  # Increase features
+
+                # Resnet blocks and attention
                 ResnetBlock(512),
-                keras.layers.Dropout(0.2),  # Added dropout
                 AttentionBlock(512),
                 ResnetBlock(512),
-                ResnetBlock(512),
-                keras.layers.Dropout(0.3),  # Added dropout
-                ResnetBlock(512),
-                keras.layers.UpSampling2D(2),
-                PaddedConv2D(512, 3, padding=1),
-                ResnetBlock(512),
-                keras.layers.Dropout(0.3),  # Added dropout
+
+                # Upsample to (128, 128, 512)
+                keras.layers.Conv2DTranspose(512, 3, strides=2, padding="same"),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                keras.layers.UpSampling2D(2),
-                PaddedConv2D(512, 3, padding=1),
-                ResnetBlock(256),
-                keras.layers.Dropout(0.4),  # Added dropout
+
+                # Upsample to (256, 256, 256)
+                keras.layers.Conv2DTranspose(256, 3, strides=2, padding="same"),
                 ResnetBlock(256),
                 ResnetBlock(256),
-                keras.layers.UpSampling2D(2),
-                PaddedConv2D(256, 3, padding=1),
+
+                # Upsample to (512, 512, 128)
+                keras.layers.Conv2DTranspose(128, 3, strides=2, padding="same"),
                 ResnetBlock(128),
                 ResnetBlock(128),
-                ResnetBlock(128),
+
+                # Output reconstruction
                 keras.layers.GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
-                PaddedConv2D(3, 3, padding=1),
-            ],
-            name=name,
+                PaddedConv2D(3, 3, padding=1),  # Final output to RGB (512, 512, 3)
+            ]
         )
-
-        if download_weights:
-            decoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_decoder.h5",  # noqa: E501
-                file_hash="ad350a65cc8bc4a80c8103367e039a3329b4231c2469a1093869a345f55b1962",  # noqa: E501
-            )
-            self.load_weights(decoder_weights_fpath)

@@ -28,40 +28,43 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
 class ImageEncoder(keras.Sequential):
     """ImageEncoder is the VAE Encoder for StableDiffusion."""
 
-    def __init__(self, download_weights=True):
+    def __init__(self):
         super().__init__(
             [
-                keras.layers.Input((None, None, 3)),
-                PaddedConv2D(128, 3, padding=1),
+                # Input layer
+                keras.layers.Input(shape=(512, 512, 3)),
+
+                # Initial feature extraction
+                PaddedConv2D(128, 3, padding=1, strides=1),  # (512, 512, 128)
                 ResnetBlock(128),
                 ResnetBlock(128),
+
+                # Downsample to (256, 256, 128)
                 PaddedConv2D(128, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(256),
                 ResnetBlock(256),
+
+                # Downsample to (128, 128, 256)
                 PaddedConv2D(256, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(512),
                 ResnetBlock(512),
+
+                # Downsample to (64, 64, 512)
                 PaddedConv2D(512, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                ResnetBlock(512),
+
+                # Add attention for better feature encoding
                 AttentionBlock(512),
                 ResnetBlock(512),
+
+                # Bottleneck preparation
                 keras.layers.GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
-                PaddedConv2D(8, 3, padding=1),
-                PaddedConv2D(8, 1),
-                # TODO(lukewood): can this be refactored to be a Rescaling
-                #  layer? Perhaps some sort of rescale and gather?
-                #  Either way, we may need a lambda to gather the first 4
-                #  dimensions.
+                PaddedConv2D(8, 3, padding=1),  # Reduce channels to 8
+                PaddedConv2D(8, 1),  # Keep dimensions the same
+
+                # Final bottleneck adjustment to (64, 64, 4)
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
-
-        if download_weights:
-            image_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",  # noqa: E501
-                file_hash="c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",  # noqa: E501
-            )
-            self.load_weights(image_encoder_weights_fpath)
