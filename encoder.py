@@ -35,6 +35,10 @@ class ImageEncoder(keras.Model):
         self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
         self.activation = keras.layers.Activation("swish")
 
+        # Define downsampling layers for skip connections
+        self.downsample_x3 = keras.layers.Conv2D(512, 3, strides=2, padding="same")  # Downsample x3
+        self.downsample_x2 = keras.layers.Conv2D(512, 3, strides=4, padding="same")  # Downsample x2
+
         # Bottleneck adjustment to (64, 64, 4)
         self.bottleneck_conv1 = PaddedConv2D(8, 3, padding=1)
         self.bottleneck_conv2 = PaddedConv2D(8, 1)
@@ -66,11 +70,11 @@ class ImageEncoder(keras.Model):
         x4 = self.resblock9(x4)
 
         # Downsample x3 to match x4 dimensions
-        x3_downsampled = keras.layers.Conv2D(512, 3, strides=2, padding="same")(x3)  # (64, 64, 512)
+        x3_downsampled = self.downsample_x3(x3)
         x4 = keras.layers.Concatenate()([x4, x3_downsampled])
 
         # Downsample x2 to match x4 dimensions
-        x2_downsampled = keras.layers.Conv2D(512, 3, strides=4, padding="same")(x2)  # (64, 64, 512)
+        x2_downsampled = self.downsample_x2(x2)
         x4 = keras.layers.Concatenate()([x4, x2_downsampled])
 
         # Bottleneck preparation
