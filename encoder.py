@@ -32,7 +32,7 @@ class ImageEncoder(keras.Sequential):
         super().__init__(
             [
                 # Input layer
-                keras.layers.Input(shape=(512, 512, 3)),
+                keras.layers.Input(shape=(None, None, 3)),
 
                 # Initial feature extraction
                 PaddedConv2D(128, 3, padding=1, strides=1),  # (512, 512, 128)
