@@ -11,8 +11,8 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 
 # Initialize the Encoder and Decoder
-encoder = ImageEncoder(download_weights=False)
-decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION, download_weights=False)
+encoder = ImageEncoder()
+decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION)
 
 # Define the VAE model
 class VAE(tf.keras.Model):
