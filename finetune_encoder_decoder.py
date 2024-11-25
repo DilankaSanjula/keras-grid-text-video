@@ -89,7 +89,7 @@ def combined_loss(y_true, y_pred):
     mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     perceptual = perceptual_loss(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
-    return mse + 0.1 * perceptual + 0.1 * ssim
+    return mse + 0.5 * perceptual + 0.3 * ssim
 
 
 vae_model = VAE(encoder=encoder, decoder=decoder)
