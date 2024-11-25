@@ -51,8 +51,8 @@ train_dataset = prepare_grid_dataset(train_paths, batch_size=2)
 val_dataset = prepare_grid_dataset(val_paths, batch_size=2)
 
 # Initialize the Encoder and Decoder
-encoder = ImageEncoder(download_weights=False)
-decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION, download_weights=False)
+encoder = ImageEncoder()
+decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION)
 
 # Define the VAE model
 class VAE(tf.keras.Model):
