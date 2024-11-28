@@ -98,18 +98,6 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 # Initialize accumulated gradients once
 accumulated_gradients = [tf.zeros_like(var) for var in vae_model.trainable_variables]
 
-# Gradient Accumulation
-@tf.function
-def train_step(inputs, targets):
-    with tf.GradientTape() as tape:
-        predictions = vae_model(inputs, training=True)
-        loss = combined_loss(targets, predictions)
-    gradients = tape.gradient(loss, vae_model.trainable_variables)
-    return loss, gradients
-
-@tf.function
-def apply_gradients(accumulated_gradients):
-    optimizer.apply_gradients(zip(accumulated_gradients, vae_model.trainable_variables))
 
 # Callbacks for Saving Weights
 best_val_loss = float("inf")  # Initialize best validation loss
@@ -126,28 +114,21 @@ def save_best_weights(epoch, val_loss):
         )
         print(f"Epoch {epoch + 1}: Saved best weights with val_loss = {val_loss:.5f}")
 
-# Training Loop
+# Training Loop without Gradient Accumulation
 for epoch in range(EPOCHS):
     print(f"Epoch {epoch + 1}/{EPOCHS}")
     train_loss = 0
     train_steps = 0
 
-    # Reset accumulated gradients to zero at the start of the epoch
-    for i in range(len(accumulated_gradients)):
-        accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
-
     for step, (inputs, targets) in enumerate(train_dataset):
-        loss, gradients = train_step(inputs, targets)
-        for i in range(len(accumulated_gradients)):
-            accumulated_gradients[i].assign_add(gradients[i])
+        with tf.GradientTape() as tape:
+            predictions = vae_model(inputs, training=True)
+            loss = combined_loss(targets, predictions)
+        gradients = tape.gradient(loss, vae_model.trainable_variables)
+        optimizer.apply_gradients(zip(gradients, vae_model.trainable_variables))
 
         train_loss += loss
         train_steps += 1
-
-        if (step + 1) % ACCUMULATION_STEPS == 0:
-            apply_gradients(accumulated_gradients)
-            for i in range(len(accumulated_gradients)):
-                accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
 
     avg_train_loss = train_loss / train_steps
 
