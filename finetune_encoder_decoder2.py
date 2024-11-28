@@ -14,6 +14,9 @@ if gpus:
     except RuntimeError as e:
         print(f"Memory growth could not be set: {e}")
 
+# Enable FP16 globally
+tf.keras.backend.set_floatx('float16')  # Set global default dtype to float16
+
 # Constants
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
@@ -33,7 +36,7 @@ def load_and_preprocess_image(file_path):
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [RESOLUTION, RESOLUTION])
-    image = (image / 127.5) - 1.0
+    image = tf.cast(image / 127.5 - 1.0, dtype=tf.float16)  # Cast to FP16
     return image
 
 def prepare_grid_dataset(image_paths, batch_size=2):
@@ -61,7 +64,7 @@ class VAE(tf.keras.Model):
     def call(self, inputs):
         latents = self.encoder(inputs)
         reconstructed = self.decoder(latents)
-        return reconstructed
+        return tf.cast(reconstructed, dtype=tf.float16)  # Keep outputs in FP16
 
 # Define Loss and Model
 reconstruction_loss_fn = tf.keras.losses.MeanSquaredError()
@@ -70,7 +73,11 @@ def vae_loss(y_true, y_pred):
     return reconstruction_loss_fn(y_true, y_pred)
 
 vae_model = VAE(encoder=encoder, decoder=decoder)
-vae_model.compile(optimizer='adam', loss=vae_loss)
+
+# Define optimizer without dynamic loss scaling for pure FP16
+optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
+
+vae_model.compile(optimizer=optimizer, loss=vae_loss)
 
 # Custom callback to save best encoder weights
 class SaveEncoderCallback(tf.keras.callbacks.Callback):
