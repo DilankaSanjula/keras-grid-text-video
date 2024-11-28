@@ -9,8 +9,8 @@ from tensorflow.keras.applications import VGG16
 # Constants
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
-BATCH_SIZE = 2  # Actual batch size in memory
-ACCUMULATION_STEPS = 2  # Effective batch size = BATCH_SIZE * ACCUMULATION_STEPS
+BATCH_SIZE = 2
+ACCUMULATION_STEPS = 2
 LEARNING_RATE = 1e-4
 EPOCHS = 1000
 
@@ -37,12 +37,15 @@ image_paths = np.array(data_frame["image_path"])
 # Split the data into training and validation sets
 train_paths, val_paths = train_test_split(image_paths, test_size=0.2, random_state=42)
 
+# Ensure no overlap between training and validation datasets
+assert not any(path in train_paths for path in val_paths), "Overlap detected between train and validation datasets"
+
 # Load and preprocess images
 def load_and_preprocess_image(file_path):
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.resize(image, [RESOLUTION, RESOLUTION])
-    image = (image / 127.5) - 1.0
+    image = (image / 127.5) - 1.0  # Normalize to [-1, 1]
     return image
 
 def prepare_grid_dataset(image_paths, batch_size):
@@ -67,7 +70,7 @@ class VAE(tf.keras.Model):
         self.encoder = encoder
         self.decoder = decoder
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         latents = self.encoder(inputs)
         reconstructed = self.decoder(latents)
         return reconstructed
@@ -123,15 +126,6 @@ def save_best_weights(epoch, val_loss):
         )
         print(f"Epoch {epoch + 1}: Saved best weights with val_loss = {val_loss:.5f}")
 
-@tf.function
-def debug_gradients(inputs, targets):
-    with tf.GradientTape() as tape:
-        predictions = vae_model(inputs, training=True)
-        loss = combined_loss(targets, predictions)
-    gradients = tape.gradient(loss, vae_model.trainable_variables)
-    for grad, var in zip(gradients, vae_model.trainable_variables):
-        tf.print(var.name, "Gradient Mean:", tf.reduce_mean(grad), "Gradient Stddev:", tf.math.reduce_std(grad))
-
 # Training Loop
 for epoch in range(EPOCHS):
     print(f"Epoch {epoch + 1}/{EPOCHS}")
@@ -143,12 +137,6 @@ for epoch in range(EPOCHS):
         accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
 
     for step, (inputs, targets) in enumerate(train_dataset):
-        # Debug gradients for the first step of each epoch
-        if step == 0:
-            print("Inspecting gradients for step 0...")
-            debug_gradients(inputs, targets)
-
-        # Standard training process
         loss, gradients = train_step(inputs, targets)
         for i in range(len(accumulated_gradients)):
             accumulated_gradients[i].assign_add(gradients[i])
@@ -156,10 +144,8 @@ for epoch in range(EPOCHS):
         train_loss += loss
         train_steps += 1
 
-        # Apply accumulated gradients every ACCUMULATION_STEPS
         if (step + 1) % ACCUMULATION_STEPS == 0:
             apply_gradients(accumulated_gradients)
-            # Reset accumulated gradients after applying them
             for i in range(len(accumulated_gradients)):
                 accumulated_gradients[i].assign(tf.zeros_like(accumulated_gradients[i]))
 
@@ -169,7 +155,7 @@ for epoch in range(EPOCHS):
     val_loss = 0
     val_steps = 0
     for inputs, targets in val_dataset:
-        predictions = vae_model(inputs, training=False)
+        predictions = vae_model(inputs, training=False)  # Ensure validation is done in inference mode
         val_loss += combined_loss(targets, predictions)
         val_steps += 1
 
