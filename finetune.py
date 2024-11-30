@@ -34,7 +34,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-3
+lr = 1e-4
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -139,7 +139,8 @@ optimizer = tf.keras.optimizers.Adam(
     learning_rate=lr_schedule,
     beta_1=0.9,
     beta_2=0.999,
-    epsilon=1e-08)
+    epsilon=1e-08,
+    clipnorm=1.0)
 
 
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
