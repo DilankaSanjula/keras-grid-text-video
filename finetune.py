@@ -56,7 +56,7 @@ sample_batch = next(iter(training_dataset))
 for k in sample_batch:
     print(k, sample_batch[k].shape)
 
-save_sample_batch_images(sample_batch, dataset_visualize_image_path)
+#save_sample_batch_images(sample_batch, dataset_visualize_image_path)
 
 # Initialize the trainer and compile it
 if USE_MP:
