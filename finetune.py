@@ -34,7 +34,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-5
+lr = 1e-6
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -75,9 +75,9 @@ noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
 # Load the pretrained weights
-if os.path.exists(pretrained_weights_path):
-    diffusion_model.load_weights(pretrained_weights_path)
-    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+# if os.path.exists(pretrained_weights_path):
+#     diffusion_model.load_weights(pretrained_weights_path)
+#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 # try:
 #     if os.path.exists(pretrained_vae):
