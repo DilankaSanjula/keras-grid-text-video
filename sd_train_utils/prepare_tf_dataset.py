@@ -56,7 +56,7 @@ def prepare_dict(image_batch, token_batch, encoded_text_batch):
     }
 
 
-def prepare_dataset(image_paths, tokenized_texts, batch_size=1):
+def prepare_dataset(image_paths, tokenized_texts, batch_size=2):
     dataset = tf.data.Dataset.from_tensor_slices((image_paths, tokenized_texts))
     dataset = dataset.shuffle(batch_size * 10)
     dataset = dataset.map(process_image, num_parallel_calls=AUTO).batch(batch_size)
