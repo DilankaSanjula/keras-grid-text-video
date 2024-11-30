@@ -1,18 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-# from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
-# from keras_cv.models.stable_diffusion.decoder import Decoder
-from encoder import ImageEncoder
-from decoder import Decoder
+from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
+from keras_cv.models.stable_diffusion.decoder import Decoder
+# from encoder import ImageEncoder
+# from decoder import Decoder
 import os
 
 MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 
 # Initialize the Encoder and Decoder
-encoder = ImageEncoder()
-decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION)
+encoder = ImageEncoder(download_weights=False)
+decoder = Decoder(img_height=RESOLUTION, img_width=RESOLUTION, download_weights=False)
 
 # Define the VAE model
 class VAE(tf.keras.Model):
@@ -28,10 +28,10 @@ class VAE(tf.keras.Model):
     
 vae_model = VAE(encoder=encoder, decoder=decoder)
 
-# Build the encoder and decoder by calling them with dummy inputs
-dummy_input = tf.random.normal([1, RESOLUTION, RESOLUTION, 3])  # Example input with batch size of 1
-vae_model.encoder(dummy_input)  # Build encoder
-vae_model.decoder(tf.random.normal([1, RESOLUTION // 8, RESOLUTION // 8, 4]))  # Build decoder
+# # Build the encoder and decoder by calling them with dummy inputs
+# dummy_input = tf.random.normal([1, RESOLUTION, RESOLUTION, 3])  # Example input with batch size of 1
+# vae_model.encoder(dummy_input)  # Build encoder
+# vae_model.decoder(tf.random.normal([1, RESOLUTION // 8, RESOLUTION // 8, 4]))  # Build decoder
 
 vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
 vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
