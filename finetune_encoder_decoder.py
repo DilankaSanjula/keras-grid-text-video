@@ -122,7 +122,7 @@ vae_model = VAE(encoder=encoder, decoder=decoder)
 
 base_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-5)
 
-vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4), loss=combined_loss)
+vae_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), loss=combined_loss)
 
 # Custom callback to save best encoder weights
 class SaveEncoderCallback(tf.keras.callbacks.Callback):
