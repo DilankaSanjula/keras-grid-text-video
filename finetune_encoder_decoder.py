@@ -27,7 +27,8 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 
 # Paths
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
+#directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
 # Create the dataframe from image directory
 data_frame = create_dataframe(directory)
