@@ -64,7 +64,7 @@ def prepare_grid_dataset(image_paths, batch_size=2):
     return dataset
 
 # Preprocess a sample image
-sample_image_path = "/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images/4x4_grid_image_of_homer_simpson_cuddles_piglet.jpg"
+sample_image_path = "/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images/Young_woman_shouting_with_hapiness_when_man_handing_over_engagement_ring_close-up__grid.jpeg"
 original_image = load_and_preprocess_image(sample_image_path)
 original_image = tf.expand_dims(original_image, axis=0)  # Add batch dimension
 
