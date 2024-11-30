@@ -114,7 +114,7 @@ def combined_loss(y_true, y_pred):
     mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     perceptual = perceptual_loss(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
-    return mse + 0.7 * perceptual + 0.2 * ssim
+    return mse + 0.4 * perceptual + 0.4 * ssim
 
 #mse + 0.5 * perceptual + 0.3 * ssim
 #mse + 0.7 * perceptual + 0.2 * ssim
