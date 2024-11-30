@@ -116,14 +116,32 @@ diffusion_ft_trainer = Trainer(
     use_mixed_precision=USE_MP,
 )
 
-# Compile the trainer
-optimizer = tf.keras.optimizers.experimental.AdamW(
-    learning_rate=lr,
-    weight_decay=weight_decay,
-    beta_1=beta_1,
-    beta_2=beta_2,
-    epsilon=epsilon,
-)
+# # Compile the trainer
+# optimizer = tf.keras.optimizers.experimental.AdamW(
+#     learning_rate=lr,
+#     weight_decay=weight_decay,
+#     beta_1=beta_1,
+#     beta_2=beta_2,
+#     epsilon=epsilon,
+# )
+
+# Define the learning rate schedule
+initial_learning_rate = lr
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate,
+    decay_steps=1000,
+    decay_rate=0.9,
+    staircase=True)
+
+
+# Initialize the optimizer with the learning rate schedule
+optimizer = tf.keras.optimizers.Adam(
+    learning_rate=lr_schedule,
+    beta_1=0.9,
+    beta_2=0.999,
+    epsilon=1e-08)
+
+
 diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
@@ -131,7 +149,7 @@ best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 model_checkpoint_callback = ModelCheckpoint(
     filepath=best_weights_filepath,
     save_weights_only=True,
-    monitor='val_loss',  # Monitor validation loss
+    monitor='loss',  # Monitor validation loss
     mode='min',  # Use 'min' to save weights with the lowest validation loss
     save_best_only=True,  # Save only the best weights
     verbose=1  # Prints a message when saving the best weights
