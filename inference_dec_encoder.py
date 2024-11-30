@@ -33,8 +33,8 @@ vae_model = VAE(encoder=encoder, decoder=decoder)
 # vae_model.encoder(dummy_input)  # Build encoder
 # vae_model.decoder(tf.random.normal([1, RESOLUTION // 8, RESOLUTION // 8, 4]))  # Build decoder
 
-vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_encoder.h5")
-vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/final_vae_decoder.h5")
+vae_model.encoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5")
+vae_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
 
 # Function to display images
 def display_images(original, reconstructed):
