@@ -24,7 +24,7 @@ if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 
-vgg = VGG16(include_top=False, weights="imagenet", input_shape=(512, 512, 3))
+vgg = VGG16(include_top=False, weights="imagenet", input_shape=(64, 64, 3))
 vgg.trainable = False
 
 def perceptual_loss(y_true, y_pred):
