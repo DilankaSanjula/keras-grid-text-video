@@ -28,8 +28,15 @@ vgg = VGG16(include_top=False, weights="imagenet", input_shape=(64, 64, 3))
 vgg.trainable = False
 
 def perceptual_loss(y_true, y_pred):
-    true_features = vgg(y_true)
-    pred_features = vgg(y_pred)
+    # Ensure the inputs are RGB (3 channels)
+    y_true_rgb = y_true[..., :3]
+    y_pred_rgb = y_pred[..., :3]
+    
+    # Extract features using VGG
+    true_features = vgg(y_true_rgb)
+    pred_features = vgg(y_pred_rgb)
+    
+    # Compute perceptual loss
     return tf.reduce_mean(tf.abs(true_features - pred_features))
 
 def ssim_loss(y_true, y_pred):
