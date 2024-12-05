@@ -12,7 +12,7 @@ from sd_train_utils.prepare_tf_dataset import prepare_dataset
 from sd_train_utils.visualize_dataset import save_sample_batch_images
 from sd_train_utils.trainer import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.applications import VGG19
+from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
 
 # Constants
@@ -23,62 +23,23 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
+
+vgg = VGG16(include_top=False, weights="imagenet", input_shape=(512, 512, 3))
+vgg.trainable = False
+
 def perceptual_loss(y_true, y_pred):
-    # Ensure input images are in RGB format
-    y_true_rgb = y_true[..., :3]  # Take only the first 3 channels (drop alpha)
-    y_pred_rgb = y_pred[..., :3]
-
-    vgg = VGG19(weights='imagenet', include_top=False)
-    selected_layers = ['block1_conv2', 'block2_conv2', 'block3_conv3']
-    outputs = [vgg.get_layer(name).output for name in selected_layers]
-    vgg_model = Model(inputs=vgg.input, outputs=outputs)
-    vgg_model.trainable = False  # Freeze the VGG model
-
-    # Normalize inputs for VGG
-    y_true_vgg = tf.keras.applications.vgg19.preprocess_input(y_true_rgb * 255.0)
-    y_pred_vgg = tf.keras.applications.vgg19.preprocess_input(y_pred_rgb * 255.0)
-
-    # Extract features
-    y_true_features = vgg_model(y_true_vgg)
-    y_pred_features = vgg_model(y_pred_vgg)
-
-    # Compute perceptual loss
-    loss = 0.0
-    for true_feat, pred_feat in zip(y_true_features, y_pred_features):
-        loss += tf.reduce_mean(tf.abs(true_feat - pred_feat))
-
-    return loss
-
-
-# Define a combined loss
-def combined_loss(y_true, y_pred):
-    mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
-    perceptual = perceptual_loss(y_true, y_pred)
-    return mse_loss + 0.1 * perceptual  # Weight the perceptual loss
+    true_features = vgg(y_true)
+    pred_features = vgg(y_pred)
+    return tf.reduce_mean(tf.abs(true_features - pred_features))
 
 def ssim_loss(y_true, y_pred):
-    return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
+    return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
 
-def combined_loss_with_ssim(y_true, y_pred):
-    # Ensure data types match the training precision
-    y_true = tf.cast(y_true, y_pred.dtype)  # Match the dtype of y_pred
-
-    # MSE Loss
-    mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
-
-    # Perceptual Loss
+def combined_loss(y_true, y_pred):
+    mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     perceptual = perceptual_loss(y_true, y_pred)
-
-    # SSIM Loss
-    ssim = 1 - tf.reduce_mean(tf.image.ssim(y_true[..., :3], y_pred[..., :3], max_val=1.0))
-
-    # Combine losses (ensure all are of the same dtype)
-    total_loss = tf.cast(mse_loss, y_pred.dtype) + \
-                 0.1 * tf.cast(perceptual, y_pred.dtype) + \
-                 0.2 * tf.cast(ssim, y_pred.dtype)
-
-    return total_loss
-
+    ssim = ssim_loss(y_true, y_pred)
+    return mse + 0.4 * perceptual + 0.4 * ssim
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
@@ -206,7 +167,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss_with_ssim)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
