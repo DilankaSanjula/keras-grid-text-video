@@ -48,7 +48,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-5
+lr = 1e-6
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
