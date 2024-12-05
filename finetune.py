@@ -25,12 +25,28 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
-lpips_loss = lpips.LPIPS(net='vgg')
+lpips_loss_fn = lpips.LPIPS(net='vgg').eval()
 
+# Custom combined loss function
 def lpips_combined_loss(y_true, y_pred):
-    mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
-    perceptual = lpips_loss(y_true, y_pred)
-    return mse + 0.5 * perceptual
+    # Extract RGB channels
+    y_true_rgb = y_true[..., :3]
+    y_pred_rgb = y_pred[..., :3]
+    
+    # Normalize inputs to match LPIPS requirements
+    y_true_rgb = (y_true_rgb + 1.0) / 2.0  # Assuming inputs are in [-1, 1], normalize to [0, 1]
+    y_pred_rgb = (y_pred_rgb + 1.0) / 2.0
+
+    # Convert to PyTorch tensors for LPIPS compatibility
+    y_true_rgb = tf.convert_to_tensor(y_true_rgb.numpy(), dtype=tf.float32)
+    y_pred_rgb = tf.convert_to_tensor(y_pred_rgb.numpy(), dtype=tf.float32)
+
+    # Compute LPIPS loss
+    perceptual = lpips_loss_fn(y_true_rgb, y_pred_rgb).mean().item()
+
+    # Combine with other loss components
+    mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
+    return mse_loss + 0.5 * perceptual
 
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
