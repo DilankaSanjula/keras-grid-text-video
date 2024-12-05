@@ -14,7 +14,6 @@ from sd_train_utils.trainer import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
-import lpips
 
 
 # Constants
@@ -25,28 +24,31 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
-lpips_loss_fn = lpips.LPIPS(net='vgg').eval()
 
-# Custom combined loss function
-def lpips_combined_loss(y_true, y_pred):
-    # Extract RGB channels
-    y_true_rgb = y_true[..., :3]
+# Define a perceptual loss using VGG16
+vgg = VGG16(include_top=False, weights="imagenet", input_shape=(64, 64, 3))
+selected_layers = ["block3_conv3", "block4_conv3"]
+outputs = [vgg.get_layer(name).output for name in selected_layers]
+vgg_model = Model(inputs=vgg.input, outputs=outputs)
+vgg_model.trainable = False
+
+def vgg_perceptual_loss(y_true, y_pred):
+    y_true_rgb = y_true[..., :3]  # Use RGB channels only
     y_pred_rgb = y_pred[..., :3]
-    
-    # Normalize inputs to match LPIPS requirements
-    y_true_rgb = (y_true_rgb + 1.0) / 2.0  # Assuming inputs are in [-1, 1], normalize to [0, 1]
+
+    # Normalize to match VGG input requirements
+    y_true_rgb = (y_true_rgb + 1.0) / 2.0  # Assuming inputs are [-1, 1]
     y_pred_rgb = (y_pred_rgb + 1.0) / 2.0
 
-    # Convert to PyTorch tensors for LPIPS compatibility
-    y_true_rgb = tf.convert_to_tensor(y_true_rgb.numpy(), dtype=tf.float32)
-    y_pred_rgb = tf.convert_to_tensor(y_pred_rgb.numpy(), dtype=tf.float32)
+    # Extract VGG features
+    true_features = vgg_model(y_true_rgb)
+    pred_features = vgg_model(y_pred_rgb)
 
-    # Compute LPIPS loss
-    perceptual = lpips_loss_fn(y_true_rgb, y_pred_rgb).mean().item()
-
-    # Combine with other loss components
-    mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
-    return mse_loss + 0.5 * perceptual
+    # Compute perceptual loss
+    loss = 0.0
+    for true_feat, pred_feat in zip(true_features, pred_features):
+        loss += tf.reduce_mean(tf.abs(true_feat - pred_feat))
+    return loss
 
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
@@ -183,7 +185,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=lpips_combined_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=vgg_perceptual_loss)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
