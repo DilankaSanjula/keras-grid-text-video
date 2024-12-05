@@ -23,30 +23,13 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
-
-vgg = VGG16(include_top=False, weights="imagenet", input_shape=(64, 64, 3))
-vgg.trainable = False
-
-def perceptual_loss(y_true, y_pred):
-    # Ensure the inputs are RGB (3 channels)
-    y_true_rgb = y_true[..., :3]
-    y_pred_rgb = y_pred[..., :3]
-    
-    # Extract features using VGG
-    true_features = vgg(y_true_rgb)
-    pred_features = vgg(y_pred_rgb)
-    
-    # Compute perceptual loss
-    return tf.reduce_mean(tf.abs(true_features - pred_features))
-
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
 
 def combined_loss(y_true, y_pred):
     mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
-    perceptual = perceptual_loss(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
-    return mse + 0.4 * perceptual + 0.4 * ssim
+    return mse  + 0.4 * ssim
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
