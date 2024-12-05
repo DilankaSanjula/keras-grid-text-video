@@ -20,18 +20,20 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
 
-# Define a perceptual loss using VGG19
 def perceptual_loss(y_true, y_pred):
+    # Ensure input images are in RGB format
+    y_true_rgb = y_true[..., :3]  # Take only the first 3 channels (drop alpha)
+    y_pred_rgb = y_pred[..., :3]
+
     vgg = VGG19(weights='imagenet', include_top=False)
-    # Select intermediate layers for perceptual loss (e.g., feature maps)
     selected_layers = ['block1_conv2', 'block2_conv2', 'block3_conv3']
     outputs = [vgg.get_layer(name).output for name in selected_layers]
     vgg_model = Model(inputs=vgg.input, outputs=outputs)
     vgg_model.trainable = False  # Freeze the VGG model
 
-    # Normalize inputs as required by VGG
-    y_true_vgg = tf.keras.applications.vgg19.preprocess_input(y_true * 255.0)
-    y_pred_vgg = tf.keras.applications.vgg19.preprocess_input(y_pred * 255.0)
+    # Normalize inputs for VGG
+    y_true_vgg = tf.keras.applications.vgg19.preprocess_input(y_true_rgb * 255.0)
+    y_pred_vgg = tf.keras.applications.vgg19.preprocess_input(y_pred_rgb * 255.0)
 
     # Extract features
     y_true_features = vgg_model(y_true_vgg)
@@ -43,6 +45,7 @@ def perceptual_loss(y_true, y_pred):
         loss += tf.reduce_mean(tf.abs(true_feat - pred_feat))
 
     return loss
+
 
 # Define a combined loss
 def combined_loss(y_true, y_pred):
@@ -56,7 +59,7 @@ def ssim_loss(y_true, y_pred):
 def combined_loss_with_ssim(y_true, y_pred):
     mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
     perceptual = perceptual_loss(y_true, y_pred)
-    ssim = ssim_loss(y_true, y_pred)
+    ssim = 1 - tf.reduce_mean(tf.image.ssim(y_true[..., :3], y_pred[..., :3], max_val=1.0))  # Ensure 3 channels for SSIM
     return mse_loss + 0.1 * perceptual + 0.2 * ssim
 
 
