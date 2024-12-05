@@ -22,7 +22,7 @@ USE_MP = True
 
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
-    
+
 def perceptual_loss(y_true, y_pred):
     # Ensure input images are in RGB format
     y_true_rgb = y_true[..., :3]  # Take only the first 3 channels (drop alpha)
@@ -60,10 +60,24 @@ def ssim_loss(y_true, y_pred):
     return 1 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
 
 def combined_loss_with_ssim(y_true, y_pred):
+    # Ensure data types match the training precision
+    y_true = tf.cast(y_true, y_pred.dtype)  # Match the dtype of y_pred
+
+    # MSE Loss
     mse_loss = tf.reduce_mean(tf.square(y_true - y_pred))
+
+    # Perceptual Loss
     perceptual = perceptual_loss(y_true, y_pred)
-    ssim = 1 - tf.reduce_mean(tf.image.ssim(y_true[..., :3], y_pred[..., :3], max_val=1.0))  # Ensure 3 channels for SSIM
-    return mse_loss + 0.1 * perceptual + 0.2 * ssim
+
+    # SSIM Loss
+    ssim = 1 - tf.reduce_mean(tf.image.ssim(y_true[..., :3], y_pred[..., :3], max_val=1.0))
+
+    # Combine losses (ensure all are of the same dtype)
+    total_loss = tf.cast(mse_loss, y_pred.dtype) + \
+                 0.1 * tf.cast(perceptual, y_pred.dtype) + \
+                 0.2 * tf.cast(ssim, y_pred.dtype)
+
+    return total_loss
 
 
 # Paths
