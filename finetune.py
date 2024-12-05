@@ -14,6 +14,8 @@ from sd_train_utils.trainer import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
+import lpips
+
 
 # Constants
 MAX_PROMPT_LENGTH = 77
@@ -22,6 +24,13 @@ USE_MP = True
 
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
+
+lpips_loss = lpips.LPIPS(net='vgg')
+
+def lpips_combined_loss(y_true, y_pred):
+    mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
+    perceptual = lpips_loss(y_true, y_pred)
+    return mse + 0.5 * perceptual
 
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
@@ -158,7 +167,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=lpips_combined_loss)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
