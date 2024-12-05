@@ -20,6 +20,9 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
 
+if USE_MP:
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+    
 def perceptual_loss(y_true, y_pred):
     # Ensure input images are in RGB format
     y_true_rgb = y_true[..., :3]  # Take only the first 3 channels (drop alpha)
