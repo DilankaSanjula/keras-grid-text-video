@@ -157,7 +157,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
