@@ -207,6 +207,88 @@ class DiffusionModelV2(keras.Model):
             )
             self.load_weights(diffusion_model_weights_fpath)
 
+class ImprovedDiffusionModel(keras.Model):
+    def __init__(
+        self,
+        img_height,
+        img_width,
+        max_text_length,
+        name=None,
+    ):
+        context = keras.layers.Input((max_text_length, 768))  # Match your encoder
+        t_embed_input = keras.layers.Input((320,))
+        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+
+        t_emb = keras.layers.Dense(1280)(t_embed_input)
+        t_emb = keras.layers.Activation("swish")(t_emb)
+        t_emb = keras.layers.Dense(1280)(t_emb)
+
+        # Downsampling flow
+        outputs = []
+        x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(8, 96, fully_connected=True)([x, context])  # V2 attention
+            outputs.append(x)
+        x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])  # V2 attention
+            outputs.append(x)
+        x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+            outputs.append(x)
+        x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
+        outputs.append(x)
+
+        for _ in range(2):
+            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+            outputs.append(x)
+
+        # Middle flow
+        x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+        x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+        x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+
+        # Upsampling flow
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+        x = Upsample(1280)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+        x = Upsample(1280)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])  # V2 attention
+        x = Upsample(640)(x)
+
+        for _ in range(3):
+            x = keras.layers.Concatenate()([x, outputs.pop()])
+            x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
+            x = SpatialTransformer(8, 96, fully_connected=True)([x, context])  # V2 attention
+
+        # Exit flow
+        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
+        x = keras.layers.Activation("swish")(x)
+        output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
+
+        super().__init__([latent, t_embed_input, context], output, name=name)
+
+
 
 class ResBlock(keras.layers.Layer):
     def __init__(self, output_dim, **kwargs):
@@ -244,6 +326,44 @@ class ResBlock(keras.layers.Layer):
         for layer in self.exit_flow:
             x = layer(x)
         return x + self.residual_projection(inputs)
+
+class ResBlockV2(keras.layers.Layer):
+    def __init__(self, output_dim, **kwargs):
+        super().__init__(**kwargs)
+        self.output_dim = output_dim
+        self.entry_flow = [
+            keras.layers.GroupNormalization(epsilon=1e-5),
+            keras.layers.Activation("swish"),
+            PaddedConv2D(output_dim, 3, padding=1),
+        ]
+        self.embedding_flow = [
+            keras.layers.Activation("swish"),
+            keras.layers.Dense(output_dim),
+        ]
+        self.exit_flow = [
+            keras.layers.GroupNormalization(epsilon=1e-5),
+            keras.layers.Activation("swish"),
+            PaddedConv2D(output_dim, 3, padding=1),
+        ]
+
+    def build(self, input_shape):
+        if input_shape[0][-1] != self.output_dim:
+            self.residual_projection = PaddedConv2D(self.output_dim, 1)
+        else:
+            self.residual_projection = lambda x: x
+
+    def call(self, inputs):
+        inputs, embeddings = inputs
+        x = inputs
+        for layer in self.entry_flow:
+            x = layer(x)
+        for layer in self.embedding_flow:
+            embeddings = layer(embeddings)
+        x = x + embeddings[:, None, None]
+        for layer in self.exit_flow:
+            x = layer(x)
+        return x + self.residual_projection(inputs)
+
 
 
 class SpatialTransformer(keras.layers.Layer):
