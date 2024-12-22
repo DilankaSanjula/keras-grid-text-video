@@ -15,6 +15,7 @@ from sd_train_utils.trainer import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
 
 
 # Constants
@@ -207,4 +208,28 @@ model_checkpoint_callback = ModelCheckpoint(
     verbose=1  # Prints a message when saving the best weights
 )
 
-diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback, model_checkpoint_callback])
+# Callback: Reduce learning rate on plateau
+reduce_lr_on_plateau = ReduceLROnPlateau(
+    monitor='loss',          # Monitor training loss
+    factor=0.5,              # Reduce learning rate by half
+    patience=5,              # Number of epochs with no improvement
+    min_lr=1e-8,             # Minimum learning rate
+    verbose=1                # Prints a message when reducing learning rate
+)
+
+# Callback: Early stopping (optional)
+early_stopping = EarlyStopping(
+    monitor='loss',          # Monitor training loss
+    patience=10,             # Stop training if no improvement for 10 epochs
+    verbose=1
+)
+
+
+#diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback, model_checkpoint_callback])
+
+# Add ReduceLROnPlateau to the list of callbacks
+diffusion_ft_trainer.fit(
+    training_dataset,
+    epochs=epochs,
+    callbacks=[custom_ckpt_callback, model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
+)
