@@ -5,7 +5,7 @@ from tensorflow import keras
 import keras_cv
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 #from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
-from diffusion_model import DiffusionModel
+from diffusion_model import EnhancedDiffusionModel
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
@@ -108,7 +108,7 @@ image_encoder_weights_fpath = '/content/drive/MyDrive/stable_diffusion_4x4/decod
 
 image_encoder = ImageEncoder(download_weights=False)
 image_encoder.load_weights(image_encoder_weights_fpath)
-diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
+diffusion_model = EnhancedDiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
 vae = tf.keras.Model(
     image_encoder.input,
     image_encoder.layers[-2].output,
@@ -186,7 +186,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=vgg_perceptual_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
