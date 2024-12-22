@@ -114,7 +114,7 @@ if USE_MP:
 
 image_encoder_weights_fpath = '/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_encoder.h5'
 
-image_encoder = ImageEncoder(download_weights=False)
+image_encoder = ImageEncoder(download_weights=True)
 image_encoder.load_weights(image_encoder_weights_fpath)
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
 vae = tf.keras.Model(
