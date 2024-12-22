@@ -54,6 +54,8 @@ def vgg_perceptual_loss(y_true, y_pred):
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
 
+mse = tf.keras.losses.MeanSquaredError()
+
 def combined_loss(y_true, y_pred):
     mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
@@ -67,14 +69,14 @@ def combined_loss(y_true, y_pred):
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+#directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_single_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_2x2_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
-#directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
@@ -192,7 +194,7 @@ optimizer = tf.keras.optimizers.Adam(
 
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=mse)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
