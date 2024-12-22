@@ -57,7 +57,13 @@ def ssim_loss(y_true, y_pred):
 def combined_loss(y_true, y_pred):
     mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
-    return mse  + 0.4 * ssim
+    
+    # Ensure both terms are float32 for consistency
+    mse = tf.cast(mse, tf.float32)
+    ssim = tf.cast(ssim, tf.float32)
+    
+    return mse + 0.4 * ssim
+
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
