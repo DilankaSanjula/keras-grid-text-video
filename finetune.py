@@ -5,7 +5,7 @@ from tensorflow import keras
 import keras_cv
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
 #from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
-from diffusion_model import EnhancedDiffusionModel
+from diffusion_model import DiffusionModel
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
@@ -108,7 +108,7 @@ image_encoder_weights_fpath = '/content/drive/MyDrive/stable_diffusion_4x4/decod
 
 image_encoder = ImageEncoder(download_weights=False)
 image_encoder.load_weights(image_encoder_weights_fpath)
-diffusion_model = EnhancedDiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
+diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
 vae = tf.keras.Model(
     image_encoder.input,
     image_encoder.layers[-2].output,
@@ -144,10 +144,10 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
 ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_6'
-save_frequency = 20  # Save every 10 epochs
+save_frequency = 50  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 100  # Adjust the number of epochs as needed
+epochs = 200  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
