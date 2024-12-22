@@ -230,21 +230,21 @@ class ImprovedDiffusionModel(keras.Model):
 
         for _ in range(2):
             x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(8, 96, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(8, 96, fully_connected=True)([x, context])  # V2 attention
             outputs.append(x)
         x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(10, 64, fully_connected=True)([x, context])  # V2 attention
             outputs.append(x)
         x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
 
         for _ in range(2):
             x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
             outputs.append(x)
         x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
         outputs.append(x)
@@ -255,7 +255,7 @@ class ImprovedDiffusionModel(keras.Model):
 
         # Middle flow
         x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-        x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+        x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
         x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
 
         # Upsampling flow
@@ -267,19 +267,19 @@ class ImprovedDiffusionModel(keras.Model):
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(20, 64, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
         x = Upsample(1280)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(10, 64, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(10, 64, fully_connected=True)([x, context])  # V2 attention
         x = Upsample(640)(x)
 
         for _ in range(3):
             x = keras.layers.Concatenate()([x, outputs.pop()])
             x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformer(8, 96, fully_connected=True)([x, context])  # V2 attention
+            x = SpatialTransformerV2(8, 96, fully_connected=True)([x, context])  # V2 attention
 
         # Exit flow
         x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
@@ -288,6 +288,35 @@ class ImprovedDiffusionModel(keras.Model):
 
         super().__init__([latent, t_embed_input, context], output, name=name)
 
+
+class SpatialTransformerV2(keras.layers.Layer):
+    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
+        super().__init__(**kwargs)
+        self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
+        channels = num_heads * head_size
+        self.proj1 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
+        self.proj2 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
+        self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
+        
+        # Add a projection layer for the context embeddings
+        self.context_projection = keras.layers.Dense(channels)
+
+    def call(self, inputs):
+        inputs, context = inputs
+        _, h, w, c = inputs.shape
+        
+        # Normalize and project the inputs
+        x = self.norm(inputs)
+        x = self.proj1(x)
+        x = tf.reshape(x, (-1, h * w, c))
+        
+        # Project the context embeddings to match the channel dimension
+        context = self.context_projection(context)
+        
+        # Apply the transformer block
+        x = self.transformer_block([x, context])
+        x = tf.reshape(x, (-1, h, w, c))
+        return self.proj2(x) + inputs
 
 
 class ResBlock(keras.layers.Layer):
