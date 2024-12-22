@@ -4,8 +4,8 @@ import tensorflow as tf
 from tensorflow import keras
 import keras_cv
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
-#from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
-from diffusion_model import DiffusionModel
+from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
+#from diffusion_model import DiffusionModel
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
