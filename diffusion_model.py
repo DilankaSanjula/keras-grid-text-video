@@ -297,26 +297,31 @@ class SpatialTransformerV2(keras.layers.Layer):
         self.proj1 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
         self.proj2 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
         self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-        
+
         # Add a projection layer for the context embeddings
         self.context_projection = keras.layers.Dense(channels)
 
     def call(self, inputs):
         inputs, context = inputs
-        _, h, w, c = inputs.shape
-        
-        # Normalize and project the inputs
-        x = self.norm(inputs)
-        x = self.proj1(x)
-        x = tf.reshape(x, (-1, h * w, c))
-        
-        # Project the context embeddings to match the channel dimension
+        _, h, w, c = inputs.shape  # Shape of the latent input
+        x = self.norm(inputs)      # Normalize the latent input
+        x = self.proj1(x)          # Project latent to transformer channels
+        x = tf.reshape(x, (-1, h * w, c))  # Flatten spatial dimensions
+
+        # Project context embeddings to match transformer channels
         context = self.context_projection(context)
-        
+
+        # Ensure shapes are compatible before passing to transformer
+        assert x.shape[-1] == context.shape[-1], \
+            f"Latent and context dimensions do not match: {x.shape[-1]} != {context.shape[-1]}"
+
         # Apply the transformer block
         x = self.transformer_block([x, context])
+
+        # Reshape back to spatial dimensions
         x = tf.reshape(x, (-1, h, w, c))
         return self.proj2(x) + inputs
+
 
 
 class ResBlock(keras.layers.Layer):
