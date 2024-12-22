@@ -84,7 +84,7 @@ directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-3
+lr = 1e-4
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
