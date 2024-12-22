@@ -113,7 +113,22 @@ class DiffusionModel(keras.Model):
             )
             self.load_weights(diffusion_model_weights_fpath)
 
+class EnhancedDiffusionModel(DiffusionModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        # Refinement block
+        self.refinement_block = keras.Sequential([
+            keras.layers.Conv2D(128, kernel_size=3, padding='same', activation='swish'),
+            keras.layers.Conv2D(64, kernel_size=3, padding='same', activation='swish'),
+            keras.layers.Conv2D(4, kernel_size=3, padding='same'),  # Output with 4 channels
+        ])
+
+    def call(self, inputs):
+        x = super().call(inputs)  # Get the output from the diffusion model
+        x = self.refinement_block(x)  # Apply refinement
+        return x
+    
 class DiffusionModelV2(keras.Model):
     def __init__(
         self,
@@ -206,122 +221,6 @@ class DiffusionModelV2(keras.Model):
                 file_hash="c31730e91111f98fe0e2dbde4475d381b5287ebb9672b1821796146a25c5132d",  # noqa: E501
             )
             self.load_weights(diffusion_model_weights_fpath)
-
-class ImprovedDiffusionModel(keras.Model):
-    def __init__(
-        self,
-        img_height,
-        img_width,
-        max_text_length,
-        name=None,
-    ):
-        context = keras.layers.Input((max_text_length, 768))  # Match your encoder
-        t_embed_input = keras.layers.Input((320,))
-        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
-
-        t_emb = keras.layers.Dense(1280)(t_embed_input)
-        t_emb = keras.layers.Activation("swish")(t_emb)
-        t_emb = keras.layers.Dense(1280)(t_emb)
-
-        # Downsampling flow
-        outputs = []
-        x = PaddedConv2D(320, kernel_size=3, padding=1)(latent)
-        outputs.append(x)
-
-        for _ in range(2):
-            x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(8, 96, fully_connected=True)([x, context])  # V2 attention
-            outputs.append(x)
-        x = PaddedConv2D(320, 3, strides=2, padding=1)(x)  # Downsample 2x
-        outputs.append(x)
-
-        for _ in range(2):
-            x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(10, 64, fully_connected=True)([x, context])  # V2 attention
-            outputs.append(x)
-        x = PaddedConv2D(640, 3, strides=2, padding=1)(x)  # Downsample 2x
-        outputs.append(x)
-
-        for _ in range(2):
-            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
-            outputs.append(x)
-        x = PaddedConv2D(1280, 3, strides=2, padding=1)(x)  # Downsample 2x
-        outputs.append(x)
-
-        for _ in range(2):
-            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-            outputs.append(x)
-
-        # Middle flow
-        x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-        x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
-        x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-
-        # Upsampling flow
-        for _ in range(3):
-            x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-        x = Upsample(1280)(x)
-
-        for _ in range(3):
-            x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlockV2(1280)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(20, 64, fully_connected=True)([x, context])  # V2 attention
-        x = Upsample(1280)(x)
-
-        for _ in range(3):
-            x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlockV2(640)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(10, 64, fully_connected=True)([x, context])  # V2 attention
-        x = Upsample(640)(x)
-
-        for _ in range(3):
-            x = keras.layers.Concatenate()([x, outputs.pop()])
-            x = ResBlockV2(320)([x, t_emb])  # Use improved ResBlock
-            x = SpatialTransformerV2(8, 96, fully_connected=True)([x, context])  # V2 attention
-
-        # Exit flow
-        x = keras.layers.GroupNormalization(epsilon=1e-5)(x)
-        x = keras.layers.Activation("swish")(x)
-        output = PaddedConv2D(4, kernel_size=3, padding=1)(x)
-
-        super().__init__([latent, t_embed_input, context], output, name=name)
-
-
-class SpatialTransformerV2(keras.layers.Layer):
-    def __init__(self, num_heads, head_size, fully_connected=False, **kwargs):
-        super().__init__(**kwargs)
-        self.norm = keras.layers.GroupNormalization(epsilon=1e-5)
-        channels = num_heads * head_size
-        self.proj1 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
-        self.proj2 = keras.layers.Dense(channels) if fully_connected else PaddedConv2D(channels, 1)
-        self.transformer_block = BasicTransformerBlock(channels, num_heads, head_size)
-
-        # Add a projection layer for the context embeddings
-        self.context_projection = keras.layers.Dense(channels)
-
-    def call(self, inputs):
-        inputs, context = inputs
-        _, h, w, c = inputs.shape  # Shape of the latent input
-        x = self.norm(inputs)      # Normalize the latent input
-        x = self.proj1(x)          # Project latent to transformer channels
-        x = tf.reshape(x, (-1, h * w, c))  # Flatten spatial dimensions
-
-        # Project context embeddings to match transformer channels
-        context = self.context_projection(context)
-
-        # Ensure shapes are compatible before passing to transformer
-        assert x.shape[-1] == context.shape[-1], \
-            f"Latent and context dimensions do not match: {x.shape[-1]} != {context.shape[-1]}"
-
-        # Apply the transformer block
-        x = self.transformer_block([x, context])
-
-        # Reshape back to spatial dimensions
-        x = tf.reshape(x, (-1, h, w, c))
-        return self.proj2(x) + inputs
-
 
 
 class ResBlock(keras.layers.Layer):
