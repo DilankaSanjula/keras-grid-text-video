@@ -67,22 +67,22 @@ def combined_loss(y_true, y_pred):
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
-#directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
+directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_single_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_2x2_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
+#directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
-pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_6/final.h5'
+#pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_6/final.h5'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-4
+lr = 1e-3
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -122,10 +122,10 @@ vae = tf.keras.Model(
 noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
-#Load the pretrained weights
-if os.path.exists(pretrained_weights_path):
-    diffusion_model.load_weights(pretrained_weights_path)
-    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+# #Load the pretrained weights
+# if os.path.exists(pretrained_weights_path):
+#     diffusion_model.load_weights(pretrained_weights_path)
+#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 # try:
 #     if os.path.exists(pretrained_vae):
@@ -150,10 +150,10 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
 ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
-save_frequency = 50  # Save every 10 epochs
+save_frequency = 25  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 200  # Adjust the number of epochs as needed
+epochs = 100  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
