@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow import keras
 import keras_cv
 from keras_cv.models.stable_diffusion.image_encoder import ImageEncoder
-from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModel
+from keras_cv.models.stable_diffusion.diffusion_model import DiffusionModelV2
 from keras_cv.models.stable_diffusion.noise_scheduler import NoiseScheduler
 from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
@@ -107,7 +107,7 @@ image_encoder_weights_fpath = '/content/drive/MyDrive/stable_diffusion_4x4/decod
 
 image_encoder = ImageEncoder(download_weights=False)
 image_encoder.load_weights(image_encoder_weights_fpath)
-diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
+diffusion_model = DiffusionModelV2(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH)
 vae = tf.keras.Model(
     image_encoder.input,
     image_encoder.layers[-2].output,
