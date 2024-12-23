@@ -135,7 +135,6 @@ class HighLossSampleRemoverCallback(keras.callbacks.Callback):
 # Instantiate the callback with diffusion_model
 high_loss_callback = HighLossSampleRemoverCallback(
     dataset=training_dataset,
-    diffusion_model=diffusion_model,
     threshold_multiplier=2.0
 )
 
