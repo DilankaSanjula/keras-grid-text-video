@@ -57,16 +57,21 @@ def ssim_loss(y_true, y_pred):
 
 mse = tf.keras.losses.MeanSquaredError()
 
-def combined_loss(y_true, y_pred):
-    mse = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
-    ssim = ssim_loss(y_true, y_pred)
-    
-    # Ensure both terms are float32 for consistency
-    mse = tf.cast(mse, tf.float32)
-    ssim = tf.cast(ssim, tf.float32)
-    
-    return mse + 0.4 * ssim
 
+def combined_loss(y_true, y_pred):
+    # Compute individual losses
+    mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
+    ssim = ssim_loss(y_true, y_pred)
+    perceptual = vgg_perceptual_loss(y_true, y_pred)
+
+    # Ensure all losses are float32 for consistency
+    mse_loss = tf.cast(mse_loss, tf.float32)
+    ssim = tf.cast(ssim, tf.float32)
+    perceptual = tf.cast(perceptual, tf.float32)
+
+    # Combine losses with weights
+    total_loss = mse_loss + 0.4 * ssim + 0.2 * perceptual
+    return total_loss
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
