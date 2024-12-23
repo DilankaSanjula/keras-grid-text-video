@@ -33,26 +33,26 @@ def process_image(image_path, tokenized_text):
     image = tf.io.read_file(image_path)
     image = tf.io.decode_png(image, 3)
     image = tf.image.resize(image, (RESOLUTION, RESOLUTION))
-    return image, tokenized_text
+    return image, tokenized_text, image_path  # Include image_path
 
 
-def apply_augmentation(image_batch, token_batch):
-    return augmenter(image_batch), token_batch
+def apply_augmentation(image_batch, token_batch, image_paths_batch):
+    augmented_images, token_batch = augmenter(image_batch), token_batch
+    return augmented_images, token_batch, image_paths_batch
 
 
-def run_text_encoder(image_batch, token_batch):
-    return (
-        image_batch,
-        token_batch,
-        text_encoder([token_batch, POS_IDS], training=False),
-    )
+def run_text_encoder(image_batch, token_batch, image_paths_batch):
+    encoded_text = text_encoder([token_batch, POS_IDS], training=False)
+    return image_batch, token_batch, encoded_text, image_paths_batch
 
 
-def prepare_dict(image_batch, token_batch, encoded_text_batch):
+def prepare_dict(image_batch, token_batch, encoded_text_batch, image_paths_batch):
     return {
         "images": image_batch,
         "tokens": token_batch,
         "encoded_text": encoded_text_batch,
+        "target": image_batch,  # Use images as ground truth
+        "image_paths": image_paths_batch,  # Include image paths
     }
 
 
@@ -64,4 +64,3 @@ def prepare_dataset(image_paths, tokenized_texts, batch_size=1):
     dataset = dataset.map(run_text_encoder, num_parallel_calls=AUTO)
     dataset = dataset.map(prepare_dict, num_parallel_calls=AUTO)
     return dataset.prefetch(AUTO)
-
