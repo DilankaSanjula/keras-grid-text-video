@@ -25,32 +25,23 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
-# Define a perceptual loss using VGG16
-vgg = VGG16(include_top=False, weights="imagenet", input_shape=(64, 64, 3))
-selected_layers = ["block3_conv3", "block4_conv3"]
-outputs = [vgg.get_layer(name).output for name in selected_layers]
-vgg_model = Model(inputs=vgg.input, outputs=outputs)
-vgg_model.trainable = False
-
-def vgg_perceptual_loss(y_true, y_pred):
-    y_true_rgb = y_true[..., :3]  # Use RGB channels only
-    y_pred_rgb = y_pred[..., :3]
-    y_true_rgb = (y_true_rgb + 1.0) / 2.0  # Normalize
-    y_pred_rgb = (y_pred_rgb + 1.0) / 2.0
-    true_features = vgg_model(y_true_rgb)
-    pred_features = vgg_model(y_pred_rgb)
-    loss = sum(tf.reduce_mean(tf.abs(tf.cast(true_feat, tf.float32) - tf.cast(pred_feat, tf.float32)))
-               for true_feat, pred_feat in zip(true_features, pred_features))
-    return loss
 
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
 
 def combined_loss(y_true, y_pred):
+    # Ensure inputs are float32 for consistent operations
+    y_true = tf.cast(y_true, tf.float32)
+    y_pred = tf.cast(y_pred, tf.float32)
+
+    # Compute individual losses
     mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
+
+    # Combine losses with weights
     total_loss = mse_loss + 0.4 * ssim
     return total_loss
+
 
 # Paths
 dataset_visualize_image_path = "sample_batch_images.png"
