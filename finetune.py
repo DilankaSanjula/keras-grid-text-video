@@ -141,6 +141,47 @@ if os.path.exists(pretrained_weights_path):
     diffusion_model.load_weights(pretrained_weights_path)
     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
+class HighLossSampleRemoverCallback(keras.callbacks.Callback):
+    def __init__(self, dataset, threshold_multiplier=2.0):
+        super(HighLossSampleRemoverCallback, self).__init__()
+        self.dataset = dataset
+        self.threshold_multiplier = threshold_multiplier  # Determines what qualifies as "high loss"
+        self.high_loss_samples = []
+
+    def on_epoch_end(self, epoch, logs=None):
+        losses_per_sample = []
+        texts_per_sample = []
+
+        for batch_data in self.dataset:
+            y_true = batch_data['target']
+            y_pred = self.model(batch_data['input'], training=False)
+
+            # Compute losses
+            losses = combined_loss(y_true, y_pred)
+
+            # Save losses and corresponding texts
+            losses_per_sample.extend(losses.numpy())
+            texts_per_sample.extend(batch_data['caption'].numpy())  # Assuming `caption` is part of the dataset
+
+        # Calculate threshold
+        mean_loss = np.mean(losses_per_sample)
+        std_loss = np.std(losses_per_sample)
+        threshold = mean_loss + self.threshold_multiplier * std_loss
+
+        # Identify high-loss samples
+        for text, loss in zip(texts_per_sample, losses_per_sample):
+            if loss > threshold:
+                self.high_loss_samples.append((text, loss))
+
+        print(f"Epoch {epoch + 1}: Removed {len(self.high_loss_samples)} high-loss samples.")
+
+    def get_high_loss_samples(self):
+        return self.high_loss_samples
+
+def filter_high_loss_samples(data_frame, high_loss_samples):
+    high_loss_texts = set(text for text, _ in high_loss_samples)
+    return data_frame[~data_frame["caption"].isin(high_loss_texts)]
+
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
     def __init__(self, ckpt_dir, save_freq=10):
@@ -232,9 +273,20 @@ early_stopping = EarlyStopping(
 
 #diffusion_ft_trainer.fit(training_dataset, epochs=epochs, callbacks=[custom_ckpt_callback, model_checkpoint_callback])
 
-# Add ReduceLROnPlateau to the list of callbacks
+
+# Instantiate the callback
+high_loss_callback = HighLossSampleRemoverCallback(training_dataset)
+
+# Train the model with the callback
 diffusion_ft_trainer.fit(
     training_dataset,
     epochs=epochs,
-    callbacks=[custom_ckpt_callback, model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
+    callbacks=[custom_ckpt_callback, model_checkpoint_callback, reduce_lr_on_plateau, early_stopping, high_loss_callback]
 )
+
+# After training, remove high-loss samples
+high_loss_samples = high_loss_callback.get_high_loss_samples()
+filtered_data_frame = filter_high_loss_samples(data_frame, high_loss_samples)
+
+# Save filtered data for future use or retrain
+filtered_data_frame.to_csv("/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7/filtered_dataset.csv", index=False)
