@@ -132,8 +132,6 @@ class HighLossSampleRemoverCallback(keras.callbacks.Callback):
     def get_high_loss_samples(self):
         return self.high_loss_samples
 
-high_loss_callback = HighLossSampleRemoverCallback(training_dataset)
-
 best_weights_filepath = os.path.join('/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7', 'best_model.h5')
 model_checkpoint_callback = ModelCheckpoint(filepath=best_weights_filepath, save_weights_only=True, monitor='loss', mode='min', save_best_only=True, verbose=1)
 
@@ -160,9 +158,24 @@ for i, caption in enumerate(all_filtered_captions):
     filtered_tokenized_texts[i] = process_text(caption)
 filtered_dataset = prepare_dataset(filtered_image_paths, filtered_tokenized_texts, batch_size=4)
 
-# Retrain with filtered dataset
+# # Retrain with filtered dataset
+# diffusion_ft_trainer.fit(
+#     filtered_dataset,
+#     epochs=4,
+#     callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
+# )
+
+
+# Instantiate the callback with diffusion_model
+high_loss_callback = HighLossSampleRemoverCallback(
+    dataset=training_dataset,
+    diffusion_model=diffusion_model,
+    threshold_multiplier=2.0
+)
+
+# Train the model with the callback
 diffusion_ft_trainer.fit(
-    filtered_dataset,
+    training_dataset,
     epochs=4,
-    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
+    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping, high_loss_callback]
 )
