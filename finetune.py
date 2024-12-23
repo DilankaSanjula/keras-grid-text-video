@@ -23,11 +23,13 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
 
-tf.keras.mixed_precision.set_global_policy("float32")
-USE_MP = False  # Indicate mixed precision is not in use
+# cant use float32
+# maxiumum batch size is 4
+# tried adam and adamw no difference
+# 
 
-# if USE_MP:
-#     tf.keras.mixed_precision.set_global_policy("mixed_float16")
+if USE_MP:
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 
 # Define a perceptual loss using VGG16
@@ -197,7 +199,7 @@ optimizer = tf.keras.optimizers.AdamW(
 )
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=mse)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
