@@ -165,14 +165,6 @@ diffusion_ft_trainer = Trainer(
     use_mixed_precision=USE_MP,
 )
 
-# # Compile the trainer
-# optimizer = tf.keras.optimizers.experimental.AdamW(
-#     learning_rate=lr,
-#     weight_decay=weight_decay,
-#     beta_1=beta_1,
-#     beta_2=beta_2,
-#     epsilon=epsilon,
-# )
 
 # Define the learning rate schedule
 initial_learning_rate = lr
@@ -183,14 +175,23 @@ lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
     staircase=True)
 
 
-# Initialize the optimizer with the learning rate schedule
-optimizer = tf.keras.optimizers.Adam(
-    learning_rate=lr_schedule,
-    beta_1=0.9,
-    beta_2=0.999,
-    epsilon=1e-08,
-    clipnorm=1.0)
+# # Initialize the optimizer with the learning rate schedule
+# optimizer = tf.keras.optimizers.Adam(
+#     learning_rate=lr_schedule,
+#     beta_1=0.9,
+#     beta_2=0.999,
+#     epsilon=1e-08,
+#     clipnorm=1.0)
 
+# Initialize the AdamW optimizer with the learning rate schedule
+optimizer = tf.keras.optimizers.AdamW(
+    learning_rate=lr_schedule,
+    weight_decay=weight_decay,  # Decoupled weight decay
+    beta_1=beta_1,
+    beta_2=beta_2,
+    epsilon=epsilon,
+    clipnorm=1.0  # Gradient clipping for stability
+)
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
 diffusion_ft_trainer.compile(optimizer=optimizer, loss=mse)
