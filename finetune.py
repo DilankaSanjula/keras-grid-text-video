@@ -81,7 +81,7 @@ directory = '/content/drive/MyDrive/webvid-10-dataset-2/4x4_grid_images'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
-#pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_6/final.h5'
+pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_4/final.h5'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
@@ -125,17 +125,10 @@ vae = tf.keras.Model(
 noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
-# #Load the pretrained weights
-# if os.path.exists(pretrained_weights_path):
-#     diffusion_model.load_weights(pretrained_weights_path)
-#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
-
-# try:
-#     if os.path.exists(pretrained_vae):
-#         vae.load_weights(pretrained_vae)
-#         print(f"Pretrained vae weights loaded from {pretrained_vae}")
-# except Exception as exp:
-#     print(exp)
+#Load the pretrained weights
+if os.path.exists(pretrained_weights_path):
+    diffusion_model.load_weights(pretrained_weights_path)
+    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
