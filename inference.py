@@ -33,7 +33,7 @@ print("Decoded image max value:", generated_images.max())
 
 for i, image_array in enumerate(generated_images):
     img = Image.fromarray(image_array)
-    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_6_{i}.png"
+    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_7_best_2{i}.png"
     img.save(file_path)
     print(f"Saved: {file_path}")
     
