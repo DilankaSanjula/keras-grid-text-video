@@ -48,12 +48,12 @@ def run_text_encoder(image_batch, token_batch):
     )
 
 
-def prepare_dict(image_batch, token_batch, encoded_text_batch):
-    return {
-        "images": image_batch,
-        "tokens": token_batch,
-        "encoded_text": encoded_text_batch,
-    }
+# def prepare_dict(image_batch, token_batch, encoded_text_batch):
+#     return {
+#         "images": image_batch,
+#         "tokens": token_batch,
+#         "encoded_text": encoded_text_batch,
+#     }
 
 
 def prepare_dataset(image_paths, tokenized_texts, batch_size=1):
@@ -64,3 +64,11 @@ def prepare_dataset(image_paths, tokenized_texts, batch_size=1):
     dataset = dataset.map(run_text_encoder, num_parallel_calls=AUTO)
     dataset = dataset.map(prepare_dict, num_parallel_calls=AUTO)
     return dataset.prefetch(AUTO)
+
+def prepare_dict(image_batch, token_batch, encoded_text_batch):
+    return {
+        "images": image_batch,
+        "tokens": token_batch,
+        "encoded_text": encoded_text_batch,
+        "target": image_batch,  # Use the ground truth images as the target
+    }
