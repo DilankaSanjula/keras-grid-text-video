@@ -67,15 +67,16 @@ def combined_loss(y_true, y_pred):
     # Compute individual losses
     mse_loss = tf.keras.losses.MeanSquaredError()(y_true, y_pred)
     ssim = ssim_loss(y_true, y_pred)
-    perceptual = vgg_perceptual_loss(y_true, y_pred)
+    #perceptual = vgg_perceptual_loss(y_true, y_pred)
 
     # Ensure all losses are float32 for consistency
     mse_loss = tf.cast(mse_loss, tf.float32)
     ssim = tf.cast(ssim, tf.float32)
-    perceptual = tf.cast(perceptual, tf.float32)
+    #perceptual = tf.cast(perceptual, tf.float32)
+    print(f"MSE Loss: {mse_loss.numpy()}, SSIM Loss: {ssim.numpy()}")
 
     # Combine losses with weights
-    total_loss = mse_loss + 0.4 * ssim + 0.2 * perceptual
+    total_loss = mse_loss + 0.4 * ssim
     return total_loss
 
 # Paths
