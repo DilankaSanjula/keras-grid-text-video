@@ -201,7 +201,7 @@ ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
 save_frequency = 25  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 100  # Adjust the number of epochs as needed
+epochs = 4  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
