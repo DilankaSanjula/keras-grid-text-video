@@ -73,7 +73,7 @@ def combined_loss(y_true, y_pred):
     mse_loss = tf.cast(mse_loss, tf.float32)
     ssim = tf.cast(ssim, tf.float32)
     #perceptual = tf.cast(perceptual, tf.float32)
-    print(f"MSE Loss: {mse_loss.numpy()}, SSIM Loss: {ssim.numpy()}")
+    tf.print("MSE Loss:", mse_loss, "SSIM Loss:", ssim)
 
     # Combine losses with weights
     total_loss = mse_loss + 0.4 * ssim
