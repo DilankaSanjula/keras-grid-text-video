@@ -23,8 +23,11 @@ MAX_PROMPT_LENGTH = 77
 RESOLUTION = 512
 USE_MP = True
 
-if USE_MP:
-    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+tf.keras.mixed_precision.set_global_policy("float32")
+USE_MP = False  # Indicate mixed precision is not in use
+
+# if USE_MP:
+#     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 
 # Define a perceptual loss using VGG16
