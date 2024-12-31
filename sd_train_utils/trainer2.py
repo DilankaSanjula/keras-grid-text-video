@@ -78,10 +78,13 @@ class Trainer(tf.keras.Model):
             # Create a mask for samples with loss below the threshold
             loss_mask = individual_losses < self.loss_threshold
 
+            # Expand dimensions of loss_mask for broadcasting
+            loss_mask_expanded = tf.expand_dims(loss_mask, axis=-1)  # Shape: [batch_size, 1]
+
             # Filter out high-loss samples
             filtered_losses = tf.boolean_mask(individual_losses, loss_mask)
             filtered_noisy_latents = tf.boolean_mask(noisy_latents, loss_mask)
-            filtered_timesteps = tf.boolean_mask(timestep_embeddings, loss_mask)
+            filtered_timesteps = tf.boolean_mask(timestep_embeddings, loss_mask_expanded)
             filtered_encoded_text = tf.boolean_mask(encoded_text, loss_mask)
 
             # Ensure there are samples remaining after filtering
