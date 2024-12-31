@@ -111,7 +111,7 @@ for i, caption in enumerate(all_captions):
     tokenized_texts[i] = process_text(caption)
 
 # Prepare the dataset
-training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=2)
+training_dataset = prepare_dataset(np.array(data_frame["image_path"]), tokenized_texts, batch_size=4)
 
 # Take a sample batch and investigate
 sample_batch = next(iter(training_dataset))
@@ -191,7 +191,7 @@ optimizer = tf.keras.optimizers.AdamW(
 )
 
 #diffusion_ft_trainer.compile(optimizer=optimizer, loss="mse")
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=mse)
 
 best_weights_filepath = os.path.join(ckpt_dir, 'best_model.h5')
 
