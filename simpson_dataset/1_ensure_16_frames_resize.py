@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageFilter
 import os
 
 def process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size = 4):
@@ -12,19 +12,39 @@ def process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size =
             # Construct full file path
             file_path = os.path.join(source_folder, file_name)
             
+
             # Open the GIF
             with Image.open(file_path) as img:
                 # Create a list to hold the frames
                 frames = []
                 
-                # Try to extract the first 16 frames
+                # Skip the first frame and process the rest
                 try:
-                    for i in range(16):
-                        img.seek(i)
+                    img.seek(1)  # Skip the first frame
+                    while True:
                         frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
+                        frame = frame.convert("RGB")  # Convert to RGB mode
+                        frame = frame.filter(ImageFilter.DETAIL)
+                        # frame = frame.filter(ImageFilter.SHARPEN).filter(ImageFilter.SHARPEN)
                         frames.append(frame)
+                        img.seek(img.tell() + 1)  # Move to the next frame
                 except EOFError:
-                    print(f"Warning: '{file_name}' has less than 16 frames.")
+                    print(f"Finished processing '{file_name}' with {len(frames)} frames (excluding first frame).")
+            # # Open the GIF
+            # with Image.open(file_path) as img:
+            #     # Create a list to hold the frames
+            #     frames = []
+                
+            #     # Try to extract the first 16 frames
+            #     try:
+            #         for i in range(16):
+            #             img.seek(i)
+            #             frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
+            #             frame = frame.convert("RGB")
+            #             frame = frame.filter(ImageFilter.SHARPEN)
+            #             frames.append(frame)
+            #     except EOFError:
+            #         print(f"Warning: '{file_name}' has less than 16 frames.")
 
 
                 if frames:
@@ -116,8 +136,8 @@ def recreate_gifs_from_grids(grid_folder, output_folder, frame_size=(128, 128), 
 
 
 source_folder = 'gifs_homer_simpson_original'
-# dest_folder = 'homer_simpson_4x4_images'
-# process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size=4)
+dest_folder = 'homer_simpson_4x4_images'
+process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size=4)
 
 # dest_folder = 'homer_simpson_2x2_images'
 # process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=2)
@@ -125,11 +145,11 @@ source_folder = 'gifs_homer_simpson_original'
 # dest_folder = 'homer_simpson_single_images'
 # process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=1)
 
-dest_folder = 'homer_simpson_4x4_1024_images'
-process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=4)
+# dest_folder = 'homer_simpson_4x4_1024_images'
+# process_gifs(source_folder, dest_folder, target_size=(256, 256), grid_size=4)
 
-dest_folder = 'homer_simpson_4x4_2048_images'
-process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=4)
+# dest_folder = 'homer_simpson_4x4_2048_images'
+# process_gifs(source_folder, dest_folder, target_size=(512, 512), grid_size=4)
 
 
 # Example usage

@@ -88,7 +88,7 @@ dataset_visualize_image_path = "sample_batch_images.png"
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_quality'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
@@ -160,7 +160,7 @@ ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
 save_frequency = 25  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 4  # Adjust the number of epochs as needed
+epochs = 100  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
