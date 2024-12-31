@@ -17,7 +17,7 @@ grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/dec
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
-prompts = ["4x4 grid image of homer simpson cuddles piglet"]
+prompts = ["grid image of homer cuddling a piglet"]
 images_to_generate = 1
 outputs = {}
 
