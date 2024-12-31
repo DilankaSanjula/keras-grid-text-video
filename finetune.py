@@ -76,7 +76,7 @@ def combined_loss(y_true, y_pred):
     tf.print("MSE Loss:", mse_loss, "SSIM Loss:", ssim)
 
     # Combine losses with weights
-    total_loss = mse_loss + 0.4 * ssim
+    total_loss = mse_loss + 0.5 * ssim
     return total_loss
 
 # Paths
