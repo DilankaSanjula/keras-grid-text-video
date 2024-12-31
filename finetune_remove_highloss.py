@@ -10,7 +10,7 @@ from sd_train_utils.data_loader import create_dataframe
 from sd_train_utils.tokenize import process_text
 from sd_train_utils.prepare_tf_dataset_highloss import prepare_dataset
 from sd_train_utils.visualize_dataset import save_sample_batch_images
-from sd_train_utils.trainer import Trainer
+from sd_train_utils.trainer2 import Trainer
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.models import Model
@@ -104,39 +104,6 @@ optimizer = tf.keras.optimizers.AdamW(
 
 diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
 
-# Callbacks
-class HighLossSampleRemoverCallback(keras.callbacks.Callback):
-    def __init__(self, dataset, threshold_multiplier=2.0):
-        super().__init__()
-        self.dataset = dataset
-        self.threshold_multiplier = threshold_multiplier
-        self.high_loss_samples = []
-
-    def on_epoch_end(self, epoch, logs=None):
-        all_losses = []
-        all_image_paths = []
-        for batch_data in self.dataset:
-            y_true = batch_data["target"]
-            y_pred = self.model(batch_data["images"], training=False)
-            losses = combined_loss(y_true, y_pred)
-            all_losses.extend(losses.numpy())
-            all_image_paths.extend(batch_data["image_paths"].numpy())
-        mean_loss = np.mean(all_losses)
-        std_loss = np.std(all_losses)
-        threshold = mean_loss + self.threshold_multiplier * std_loss
-        for path, loss in zip(all_image_paths, all_losses):
-            if loss > threshold:
-                self.high_loss_samples.append((path.decode("utf-8"), loss))
-        print(f"Epoch {epoch + 1}: Identified {len(self.high_loss_samples)} high-loss samples.")
-
-    def get_high_loss_samples(self):
-        return self.high_loss_samples
-
-# Instantiate the callback with diffusion_model
-high_loss_callback = HighLossSampleRemoverCallback(
-    dataset=training_dataset,
-    threshold_multiplier=2.0
-)
 
 best_weights_filepath = os.path.join('/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7', 'best_model.h5')
 model_checkpoint_callback = ModelCheckpoint(filepath=best_weights_filepath, save_weights_only=True, monitor='loss', mode='min', save_best_only=True, verbose=1)
@@ -148,34 +115,12 @@ early_stopping = EarlyStopping(monitor='loss', patience=10, verbose=1)
 diffusion_ft_trainer.fit(
     training_dataset,
     epochs=4,
-    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping, high_loss_callback]
+    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
 )
-
-# Remove high-loss samples and retrain
-high_loss_samples = high_loss_callback.get_high_loss_samples()
-filtered_data_frame = data_frame[~data_frame["image_path"].isin([s[0] for s in high_loss_samples])]
-filtered_data_frame.to_csv("/content/filtered_dataset.csv", index=False)
-
-# Re-prepare the dataset
-filtered_image_paths = np.array(filtered_data_frame["image_path"])
-filtered_tokenized_texts = np.empty((len(filtered_data_frame), MAX_PROMPT_LENGTH))
-all_filtered_captions = list(filtered_data_frame["caption"].values)
-for i, caption in enumerate(all_filtered_captions):
-    filtered_tokenized_texts[i] = process_text(caption)
-filtered_dataset = prepare_dataset(filtered_image_paths, filtered_tokenized_texts, batch_size=4)
-
-# # Retrain with filtered dataset
-# diffusion_ft_trainer.fit(
-#     filtered_dataset,
-#     epochs=4,
-#     callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
-# )
-
-
 
 # Train the model with the callback
 diffusion_ft_trainer.fit(
     training_dataset,
     epochs=4,
-    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping, high_loss_callback]
+    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
 )
