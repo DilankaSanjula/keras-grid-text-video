@@ -17,13 +17,13 @@ grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/dec
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
-prompts = ["grid image of homer cuddling a piglet"]
+prompts = ["grid image of homer cuddling a piglet","grid image of homer blinking slowly"]
 images_to_generate = 1
 outputs = {}
 
 for prompt in prompts:
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=7.5,num_steps=200
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=10,num_steps=200
     )
 
 generated_images = grid_model.latent_to_image(generated_latents)
@@ -33,7 +33,7 @@ print("Decoded image max value:", generated_images.max())
 
 for i, image_array in enumerate(generated_images):
     img = Image.fromarray(image_array)
-    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_7_best_2{i}.png"
+    file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/stage_7_best_{i}.png"
     img.save(file_path)
     print(f"Saved: {file_path}")
     
