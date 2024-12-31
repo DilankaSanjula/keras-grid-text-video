@@ -92,11 +92,11 @@ directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_qual
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
-pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_4/final.h5'
+pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7/best2.h5'
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-4
+lr = 1e-5
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -136,10 +136,10 @@ vae = tf.keras.Model(
 noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
-# #Load the pretrained weights
-# if os.path.exists(pretrained_weights_path):
-#     diffusion_model.load_weights(pretrained_weights_path)
-#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+#Load the pretrained weights
+if os.path.exists(pretrained_weights_path):
+    diffusion_model.load_weights(pretrained_weights_path)
+    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
@@ -208,7 +208,7 @@ model_checkpoint_callback = ModelCheckpoint(
 reduce_lr_on_plateau = ReduceLROnPlateau(
     monitor='loss',          # Monitor training loss
     factor=0.5,              # Reduce learning rate by half
-    patience=5,              # Number of epochs with no improvement
+    patience=10,              # Number of epochs with no improvement
     min_lr=1e-8,             # Minimum learning rate
     verbose=1                # Prints a message when reducing learning rate
 )
