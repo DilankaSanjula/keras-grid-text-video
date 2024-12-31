@@ -14,17 +14,17 @@ class Trainer(tf.keras.Model):
         noise_scheduler,
         use_mixed_precision=True,
         max_grad_norm=1.0,
+        loss_threshold=None,  # Add a parameter for dynamic loss threshold
         **kwargs
     ):
         super().__init__(**kwargs)
-
         self.diffusion_model = diffusion_model
         self.vae = vae
         self.noise_scheduler = noise_scheduler
         self.max_grad_norm = max_grad_norm
         self.use_mixed_precision = use_mixed_precision
-        self.vae.trainable = False  # Ensure VAE is trainable
-        # No layer freezing - train all layers
+        self.loss_threshold = loss_threshold
+        self.vae.trainable = False
         self.unfreeze_all_layers()
 
     def unfreeze_all_layers(self):
@@ -33,61 +33,85 @@ class Trainer(tf.keras.Model):
             layer.trainable = True
         print("All layers in the diffusion model are unfrozen and trainable.")
 
-
     def train_step(self, inputs):
         images = inputs["images"]
         encoded_text = inputs["encoded_text"]
         batch_size = tf.shape(images)[0]
 
-        # Reshape the batch of images to handle each 4x4 grid as individual images
-        images = tf.reshape(images, [batch_size * 16, images.shape[2], images.shape[3], images.shape[4]])
-
         with tf.GradientTape() as tape:
             # Forward pass through VAE
-            latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
+            latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
             latents = latents * 0.18215
 
-            # Generate a single noise pattern for the entire grid of 16 images
-            noise = tf.random.normal([batch_size, latents.shape[1], latents.shape[2], latents.shape[3]])
+            # Add noise to the latents
+            noise = tf.random.normal(tf.shape(latents))
 
-            # Expand noise to apply the same noise to each sub-image in the grid
-            noise = tf.repeat(noise, repeats=16, axis=0)  # Now, noise is the same across all 16 images
+            # Sample a random timestep for each image
+            timesteps = tf.random.uniform(
+                [batch_size], minval=0, maxval=self.noise_scheduler.train_timesteps, dtype=tf.int32
+            )
 
-            # Sample a single timestep for each image in the batch (same for all 16 sub-images)
-            timesteps = tf.random.uniform([batch_size], minval=0, maxval=self.noise_scheduler.train_timesteps, dtype=tf.int32)
-            timesteps = tf.repeat(timesteps, repeats=16)  # Repeat timestep across the 16 sub-images
+            # Add noise to the latents
+            noisy_latents = self.noise_scheduler.add_noise(
+                tf.cast(latents, noise.dtype), noise, timesteps
+            )
 
-            # Add the same noise to all 16 images' latents
-            noisy_latents = self.noise_scheduler.add_noise(tf.cast(latents, noise.dtype), noise, timesteps)
-
-            # Generate timestep embeddings (same embedding for all sub-images in a grid)
-            timestep_embedding = tf.map_fn(
+            # Generate timestep embeddings
+            timestep_embeddings = tf.map_fn(
                 lambda t: self.get_timestep_embedding(t), timesteps, dtype=tf.float32
             )
-            timestep_embedding = tf.squeeze(timestep_embedding, 1)
+            timestep_embeddings = tf.squeeze(timestep_embeddings, 1)
 
             # Forward pass through the diffusion model
             model_pred = self.diffusion_model(
-                [noisy_latents, timestep_embedding, encoded_text], training=True
+                [noisy_latents, timestep_embeddings, encoded_text], training=True
             )
 
-            # Calculate MSE loss for each individual image in the grid
+            # Calculate individual losses for each sample
             mse_loss = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
-            individual_losses = mse_loss(noise, model_pred)  # Calculate loss per sub-image
-            grid_loss = tf.reduce_mean(individual_losses)  # Average loss across all sub-images
+            individual_losses = mse_loss(noise, model_pred)
 
-            if self.use_mixed_precision:
-                grid_loss = self.optimizer.get_scaled_loss(grid_loss)
+            # Determine the loss threshold dynamically if not set
+            if self.loss_threshold is None:
+                self.loss_threshold = tf.reduce_mean(individual_losses) + 2 * tf.math.reduce_std(individual_losses)
 
-        # Compute gradients only for the diffusion model (VAE is not trainable)
-        trainable_vars = self.diffusion_model.trainable_variables
-        gradients = tape.gradient(grid_loss, trainable_vars)
-        if self.use_mixed_precision:
-            gradients = self.optimizer.get_unscaled_gradients(gradients)
-        gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+            # Create a mask for samples with loss below the threshold
+            loss_mask = individual_losses < self.loss_threshold
 
-        return {"loss": grid_loss}
+            # Filter out high-loss samples
+            filtered_losses = tf.boolean_mask(individual_losses, loss_mask)
+            filtered_noisy_latents = tf.boolean_mask(noisy_latents, loss_mask)
+            filtered_timesteps = tf.boolean_mask(timestep_embeddings, loss_mask)
+            filtered_encoded_text = tf.boolean_mask(encoded_text, loss_mask)
+
+            # Ensure there are samples remaining after filtering
+            def true_fn():
+                # Forward pass through the diffusion model with filtered data
+                filtered_model_pred = self.diffusion_model(
+                    [filtered_noisy_latents, filtered_timesteps, filtered_encoded_text], training=True
+                )
+
+                # Compute the loss
+                loss = tf.reduce_mean(filtered_losses)
+                if self.use_mixed_precision:
+                    loss = self.optimizer.get_scaled_loss(loss)
+
+                # Compute gradients
+                trainable_vars = self.diffusion_model.trainable_variables
+                gradients = tape.gradient(loss, trainable_vars)
+                if self.use_mixed_precision:
+                    gradients = self.optimizer.get_unscaled_gradients(gradients)
+                gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
+                self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+                return {"loss": loss}
+
+            def false_fn():
+                # If no samples remain after filtering, skip gradient update
+                return {"loss": tf.constant(0.0)}
+
+            # Use tf.cond to choose the execution path
+            return tf.cond(tf.size(filtered_losses) > 0, true_fn, false_fn)
 
 
 
