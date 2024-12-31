@@ -44,7 +44,7 @@ class Trainer(tf.keras.Model):
     def train_step(self, inputs):
         images = inputs["images"]
         encoded_text = inputs["encoded_text"]
-        image_paths = inputs["image_paths"]
+        image_paths = inputs["image_paths"]  # Access image paths
         batch_size = tf.shape(images)[0]
 
         with tf.GradientTape() as tape:
@@ -93,12 +93,14 @@ class Trainer(tf.keras.Model):
         gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Log image paths and their corresponding losses using tf.py_function
-        tf.py_function(log_image_paths_and_losses, [image_paths, individual_losses], [])
+        # Log image paths and their corresponding losses after processing the batch
+        image_paths_list = tf.unstack(image_paths)
+        individual_losses_list = tf.unstack(individual_losses)
 
-        return {m.name: m.result() for m in self.metrics}
+        for image_path, individual_loss in zip(image_paths_list, individual_losses_list):
+            tf.print('Image:', image_path, ', Loss:', individual_loss)
 
-
+        return {"loss": loss}
 
     def get_timestep_embedding(self, timestep, dim=320, max_period=10000):
         half = dim // 2
