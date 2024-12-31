@@ -86,9 +86,9 @@ dataset_visualize_image_path = "sample_batch_images.png"
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_single_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_2x2_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
+#directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
-#irectory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_quality_2'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_quality_2'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
@@ -96,7 +96,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-6
+lr = 1e-5
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
