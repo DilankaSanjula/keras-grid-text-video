@@ -17,13 +17,13 @@ grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/dec
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
-prompts = ["grid image of homer blinking slowly"]
+prompts = ["grid image of homer doing ninja moves using a batton"]
 images_to_generate = 1
 outputs = {}
 
 for prompt in prompts:
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=15,num_steps=500
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=15,num_steps=200
     )
 
 generated_images = grid_model.latent_to_image(generated_latents)
