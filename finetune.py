@@ -216,7 +216,7 @@ reduce_lr_on_plateau = ReduceLROnPlateau(
 # Callback: Early stopping (optional)
 early_stopping = EarlyStopping(
     monitor='loss',          # Monitor training loss
-    patience=10,             # Stop training if no improvement for 10 epochs
+    patience=20,             # Stop training if no improvement for 10 epochs
     verbose=1
 )
 

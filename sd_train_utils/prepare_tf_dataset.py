@@ -33,6 +33,7 @@ def process_image(image_path, tokenized_text):
     image = tf.io.read_file(image_path)
     image = tf.io.decode_png(image, 3)
     image = tf.image.resize(image, (RESOLUTION, RESOLUTION))
+    image = tf.cast(image, tf.float32) / 127.5 - 1.0
     return image, tokenized_text
 
 
@@ -58,9 +59,9 @@ def prepare_dict(image_batch, token_batch, encoded_text_batch):
 
 def prepare_dataset(image_paths, tokenized_texts, batch_size=1):
     dataset = tf.data.Dataset.from_tensor_slices((image_paths, tokenized_texts))
-    dataset = dataset.shuffle(batch_size * 10)
+    dataset = dataset.shuffle(batch_size * 7)
     dataset = dataset.map(process_image, num_parallel_calls=AUTO).batch(batch_size)
-    dataset = dataset.map(apply_augmentation, num_parallel_calls=AUTO)
+    #dataset = dataset.map(apply_augmentation, num_parallel_calls=AUTO)
     dataset = dataset.map(run_text_encoder, num_parallel_calls=AUTO)
     dataset = dataset.map(prepare_dict, num_parallel_calls=AUTO)
     return dataset.prefetch(AUTO)
