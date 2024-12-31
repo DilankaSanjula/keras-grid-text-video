@@ -96,7 +96,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-5
+lr = 1e-6
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -136,10 +136,10 @@ vae = tf.keras.Model(
 noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
-# #Load the pretrained weights
-# if os.path.exists(pretrained_weights_path):
-#     diffusion_model.load_weights(pretrained_weights_path)
-#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+#Load the pretrained weights
+if os.path.exists(pretrained_weights_path):
+    diffusion_model.load_weights(pretrained_weights_path)
+    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
@@ -157,10 +157,10 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
 ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
-save_frequency = 25  # Save every 10 epochs
+save_frequency = 50  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 100  # Adjust the number of epochs as needed
+epochs = 300  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
