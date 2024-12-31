@@ -39,67 +39,56 @@ class Trainer(tf.keras.Model):
         encoded_text = inputs["encoded_text"]
         batch_size = tf.shape(images)[0]
 
+        # Reshape the batch of images to handle each 4x4 grid as individual images
+        images = tf.reshape(images, [batch_size * 16, images.shape[2], images.shape[3], images.shape[4]])
+
         with tf.GradientTape() as tape:
             # Forward pass through VAE
             latents = self.sample_from_encoder_outputs(self.vae(images, training=False))
             latents = latents * 0.18215
 
-            # Add noise to the latents and compute the noisy latents
-            noise = tf.random.normal(tf.shape(latents))
+            # Generate a single noise pattern for the entire grid of 16 images
+            noise = tf.random.normal([batch_size, latents.shape[1], latents.shape[2], latents.shape[3]])
 
-            # Sample a random timestep for each image
-            timesteps = tf.random.uniform(
-                (batch_size,), minval=0, maxval=self.noise_scheduler.train_timesteps, dtype=tf.int32
-            )
+            # Expand noise to apply the same noise to each sub-image in the grid
+            noise = tf.repeat(noise, repeats=16, axis=0)  # Now, noise is the same across all 16 images
 
-            # Forward pass through diffusion model
-            noisy_latents = self.noise_scheduler.add_noise(
-                tf.cast(latents, noise.dtype), noise, timesteps
-            )
+            # Sample a single timestep for each image in the batch (same for all 16 sub-images)
+            timesteps = tf.random.uniform([batch_size], minval=0, maxval=self.noise_scheduler.train_timesteps, dtype=tf.int32)
+            timesteps = tf.repeat(timesteps, repeats=16)  # Repeat timestep across the 16 sub-images
+
+            # Add the same noise to all 16 images' latents
+            noisy_latents = self.noise_scheduler.add_noise(tf.cast(latents, noise.dtype), noise, timesteps)
+
+            # Generate timestep embeddings (same embedding for all sub-images in a grid)
             timestep_embedding = tf.map_fn(
                 lambda t: self.get_timestep_embedding(t), timesteps, dtype=tf.float32
             )
             timestep_embedding = tf.squeeze(timestep_embedding, 1)
+
+            # Forward pass through the diffusion model
             model_pred = self.diffusion_model(
                 [noisy_latents, timestep_embedding, encoded_text], training=True
             )
 
-            # Compute individual losses
-            mse_loss_fn = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
-            individual_losses = mse_loss_fn(noise, model_pred)
-
-            # Calculate mean and standard deviation of the losses
-            mean_loss = tf.reduce_mean(individual_losses)
-            std_loss = tf.math.reduce_std(individual_losses)
-
-            # Define a dynamic threshold; for example, mean + 2 * std
-            threshold = mean_loss + 2.0 * std_loss
-
-            # Create a mask for samples with loss below the threshold
-            mask = individual_losses <= threshold
-
-            # Filter the losses and corresponding latents
-            filtered_losses = tf.boolean_mask(individual_losses, mask)
-            filtered_latents = tf.boolean_mask(latents, mask)
-
-            # Compute the final loss as the mean of filtered losses
-            if tf.size(filtered_losses) > 0:
-                loss = tf.reduce_mean(filtered_losses)
-            else:
-                loss = mean_loss  # Fallback to mean_loss if all samples are filtered out
+            # Calculate MSE loss for each individual image in the grid
+            mse_loss = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
+            individual_losses = mse_loss(noise, model_pred)  # Calculate loss per sub-image
+            grid_loss = tf.reduce_mean(individual_losses)  # Average loss across all sub-images
 
             if self.use_mixed_precision:
-                loss = self.optimizer.get_scaled_loss(loss)
+                grid_loss = self.optimizer.get_scaled_loss(grid_loss)
 
         # Compute gradients only for the diffusion model (VAE is not trainable)
         trainable_vars = self.diffusion_model.trainable_variables
-        gradients = tape.gradient(loss, trainable_vars)
+        gradients = tape.gradient(grid_loss, trainable_vars)
         if self.use_mixed_precision:
             gradients = self.optimizer.get_unscaled_gradients(gradients)
         gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return {"loss": loss}
+        return {"loss": grid_loss}
+
 
 
     def get_timestep_embedding(self, timestep, dim=320, max_period=10000):
