@@ -33,9 +33,11 @@ class Trainer(tf.keras.Model):
             layer.trainable = True
         print("All layers in the diffusion model are unfrozen and trainable.")
 
+
     def train_step(self, inputs):
         images = inputs["images"]
         encoded_text = inputs["encoded_text"]
+        image_paths = inputs["image_paths"]  # Access image paths
         batch_size = tf.shape(images)[0]
 
         with tf.GradientTape() as tape:
@@ -43,7 +45,7 @@ class Trainer(tf.keras.Model):
             latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
             latents = latents * 0.18215
 
-            # Add noise to the latents
+            # Add noise to the latents and compute the noisy latents
             noise = tf.random.normal(tf.shape(latents))
 
             # Sample a random timestep for each image
@@ -71,50 +73,26 @@ class Trainer(tf.keras.Model):
             mse_loss = tf.keras.losses.MeanSquaredError(reduction=tf.keras.losses.Reduction.NONE)
             individual_losses = mse_loss(noise, model_pred)
 
-            # Determine the loss threshold dynamically if not set
-            if self.loss_threshold is None:
-                self.loss_threshold = tf.reduce_mean(individual_losses) + 2 * tf.math.reduce_std(individual_losses)
+            # Compute the mean loss for backpropagation
+            loss = tf.reduce_mean(individual_losses)
+            if self.use_mixed_precision:
+                loss = self.optimizer.get_scaled_loss(loss)
 
-            # Create a mask for samples with loss below the threshold
-            loss_mask = individual_losses < self.loss_threshold
+        # Compute gradients and apply them
+        trainable_vars = self.diffusion_model.trainable_variables
+        gradients = tape.gradient(loss, trainable_vars)
+        if self.use_mixed_precision:
+            gradients = self.optimizer.get_unscaled_gradients(gradients)
+        gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-            # Expand dimensions of loss_mask for broadcasting
-            loss_mask_expanded = tf.expand_dims(loss_mask, axis=-1)  # Shape: [batch_size, 1]
+        # Log image paths and their corresponding losses
+        for i in range(batch_size):
+            image_path = image_paths[i].numpy().decode('utf-8')
+            individual_loss = individual_losses[i].numpy()
+            print(f'Image: {image_path}, Loss: {individual_loss}')
 
-            # Filter out high-loss samples
-            filtered_losses = tf.boolean_mask(individual_losses, loss_mask)
-            filtered_noisy_latents = tf.boolean_mask(noisy_latents, loss_mask)
-            filtered_timesteps = tf.boolean_mask(timestep_embeddings, loss_mask_expanded)
-            filtered_encoded_text = tf.boolean_mask(encoded_text, loss_mask)
-
-            # Ensure there are samples remaining after filtering
-            def true_fn():
-                # Forward pass through the diffusion model with filtered data
-                filtered_model_pred = self.diffusion_model(
-                    [filtered_noisy_latents, filtered_timesteps, filtered_encoded_text], training=True
-                )
-
-                # Compute the loss
-                loss = tf.reduce_mean(filtered_losses)
-                if self.use_mixed_precision:
-                    loss = self.optimizer.get_scaled_loss(loss)
-
-                # Compute gradients
-                trainable_vars = self.diffusion_model.trainable_variables
-                gradients = tape.gradient(loss, trainable_vars)
-                if self.use_mixed_precision:
-                    gradients = self.optimizer.get_unscaled_gradients(gradients)
-                gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
-                self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
-                return {"loss": loss}
-
-            def false_fn():
-                # If no samples remain after filtering, skip gradient update
-                return {"loss": tf.constant(0.0)}
-
-            # Use tf.cond to choose the execution path
-            return tf.cond(tf.size(filtered_losses) > 0, true_fn, false_fn)
+        return {m.name: m.result() for m in self.metrics}
 
 
 

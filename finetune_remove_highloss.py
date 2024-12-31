@@ -25,6 +25,7 @@ USE_MP = True
 if USE_MP:
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
+mse_loss = tf.keras.losses.MeanSquaredError()
 
 def ssim_loss(y_true, y_pred):
     return 1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
@@ -102,7 +103,7 @@ optimizer = tf.keras.optimizers.AdamW(
     clipnorm=1.0
 )
 
-diffusion_ft_trainer.compile(optimizer=optimizer, loss=combined_loss)
+diffusion_ft_trainer.compile(optimizer=optimizer, loss=mse_loss)
 
 
 best_weights_filepath = os.path.join('/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7', 'best_model.h5')
@@ -112,13 +113,6 @@ reduce_lr_on_plateau = ReduceLROnPlateau(monitor='loss', factor=0.5, patience=5,
 early_stopping = EarlyStopping(monitor='loss', patience=10, verbose=1)
 
 # Train the model
-diffusion_ft_trainer.fit(
-    training_dataset,
-    epochs=4,
-    callbacks=[model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
-)
-
-# Train the model with the callback
 diffusion_ft_trainer.fit(
     training_dataset,
     epochs=4,
