@@ -23,7 +23,7 @@ outputs = {}
 
 for prompt in prompts:
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=30,num_steps=200
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=10,num_steps=200
     )
 
 generated_images = grid_model.latent_to_image(generated_latents)
