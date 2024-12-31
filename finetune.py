@@ -224,5 +224,5 @@ early_stopping = EarlyStopping(
 diffusion_ft_trainer.fit(
     training_dataset,
     epochs=epochs,
-    callbacks=[custom_ckpt_callback, model_checkpoint_callback, reduce_lr_on_plateau, early_stopping]
+    callbacks=[custom_ckpt_callback, model_checkpoint_callback]
 )
