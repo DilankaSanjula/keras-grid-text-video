@@ -86,19 +86,14 @@ class Trainer(tf.keras.Model):
         gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Function to log image paths and their corresponding losses
-        def log_image_paths_and_losses(image_paths, individual_losses):
-            for image_path, individual_loss in zip(image_paths, individual_losses):
-                print(f'Image: {image_path.decode("utf-8")}, Loss: {individual_loss}')
+        # Log image paths and their corresponding losses
+        image_paths_np = image_paths.numpy()  # Convert tensor to NumPy array
+        for i in range(batch_size.numpy()):  # Convert tensor to NumPy scalar
+            image_path = image_paths_np[i].decode('utf-8')  # Decode bytes to string
+            individual_loss = individual_losses[i].numpy()  # Convert tensor to NumPy scalar
+            print(f'Image: {image_path}, Loss: {individual_loss}')
 
-        # Use tf.py_function to execute the logging function
-        tf.py_function(
-            func=log_image_paths_and_losses,
-            inp=[image_paths, individual_losses],
-            Tout=[]
-        )
-
-        return {m.name: m.result() for m in self.metrics}
+        return {"loss": loss}
 
 
 
