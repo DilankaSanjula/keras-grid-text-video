@@ -96,7 +96,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-5
+lr = 1e-6
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -209,7 +209,7 @@ reduce_lr_on_plateau = ReduceLROnPlateau(
     monitor='loss',          # Monitor training loss
     factor=0.5,              # Reduce learning rate by half
     patience=10,              # Number of epochs with no improvement
-    min_lr=1e-8,             # Minimum learning rate
+    min_lr=1e-9,             # Minimum learning rate
     verbose=1                # Prints a message when reducing learning rate
 )
 
