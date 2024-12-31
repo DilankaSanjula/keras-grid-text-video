@@ -6,6 +6,8 @@ import tensorflow as tf
 import tensorflow.experimental.numpy as tnp
 
 
+tf.config.run_functions_eagerly(True)
+
 class Trainer(tf.keras.Model):
     def __init__(
         self,
@@ -33,11 +35,16 @@ class Trainer(tf.keras.Model):
             layer.trainable = True
         print("All layers in the diffusion model are unfrozen and trainable.")
 
+    def log_image_paths_and_losses(image_paths, individual_losses):
+        for i in range(len(image_paths)):
+            image_path = image_paths[i].numpy().decode('utf-8')
+            individual_loss = individual_losses[i].numpy()
+            print(f'Image: {image_path}, Loss: {individual_loss}')
 
     def train_step(self, inputs):
         images = inputs["images"]
         encoded_text = inputs["encoded_text"]
-        image_paths = inputs["image_paths"]  # Access image paths
+        image_paths = inputs["image_paths"]
         batch_size = tf.shape(images)[0]
 
         with tf.GradientTape() as tape:
@@ -45,7 +52,7 @@ class Trainer(tf.keras.Model):
             latents = self.sample_from_encoder_outputs(self.vae(images, training=True))
             latents = latents * 0.18215
 
-            # Add noise to the latents and compute the noisy latents
+            # Add noise to the latents
             noise = tf.random.normal(tf.shape(latents))
 
             # Sample a random timestep for each image
@@ -86,15 +93,10 @@ class Trainer(tf.keras.Model):
         gradients = [tf.clip_by_norm(g, self.max_grad_norm) for g in gradients]
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        # Log image paths and their corresponding losses
-        image_paths_np = image_paths.numpy()  # Convert tensor to NumPy array
-        for i in range(batch_size.numpy()):  # Convert tensor to NumPy scalar
-            image_path = image_paths_np[i].decode('utf-8')  # Decode bytes to string
-            individual_loss = individual_losses[i].numpy()  # Convert tensor to NumPy scalar
-            print(f'Image: {image_path}, Loss: {individual_loss}')
+        # Log image paths and their corresponding losses using tf.py_function
+        tf.py_function(log_image_paths_and_losses, [image_paths, individual_losses], [])
 
-        return {"loss": loss}
-
+        return {m.name: m.result() for m in self.metrics}
 
 
 
