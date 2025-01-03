@@ -88,7 +88,7 @@ dataset_visualize_image_path = "sample_batch_images.png"
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_simpson_4x4_images'
 #directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/mixed_dataset'
 
-directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_quality_2'
+directory = '/content/drive/MyDrive/stable_diffusion_4x4/dataset/homer_best_quality_mixed'
 
 
 #pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_1/ckpt_epoch_70.h5_2x2_diffusion_model.h5'
