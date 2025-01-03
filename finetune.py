@@ -96,7 +96,7 @@ pretrained_weights_path = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion
 # pretrained_vae = '/content/drive/MyDrive/models/vae.h5'
 
 # Learning Parameters
-lr = 1e-4
+lr = 1e-6
 beta_1, beta_2 = 0.9, 0.999
 weight_decay = (1e-2,)
 epsilon = 1e-08
@@ -160,7 +160,7 @@ ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
 save_frequency = 50  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 200  # Adjust the number of epochs as needed
+epochs = 150  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
