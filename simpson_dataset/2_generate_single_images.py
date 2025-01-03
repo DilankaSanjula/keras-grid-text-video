@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageFilter
 import os
 
 def single_images(source_folder, dest_folder, target_size=(512, 512)):
@@ -14,26 +14,24 @@ def single_images(source_folder, dest_folder, target_size=(512, 512)):
                 frames = []
                 total_frames = img.n_frames
                 print(total_frames)
-                # for i in range(16):
-                #     img.seek(i)
-                #     frame = img.copy()
                     
-                #     frame = frame.resize(target_size, Image.LANCZOS)
-                    
-                #     frames.append(frame)
+                img.seek(3)
+                frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
+                frame = frame.convert("RGB")  # Convert to RGB mode
+                frame = frame.filter(ImageFilter.DETAIL)
 
-                #     # Construct the output file path
-                #     output_file_name = f"frame_{i}_of_{os.path.splitext(file_name)[0]}.jpg"
-                #     output_file_path = os.path.join(dest_folder, output_file_name)
-                #     # Save the frame as a JPEG
-                #     frame.convert("RGB").save(output_file_path, "JPEG")
-                #     print(f"Saved {output_file_path}")
+                # Construct the output file path
+                output_file_name = f"{os.path.splitext(file_name)[0]}.jpg"
+                output_file_path = os.path.join(dest_folder, output_file_name)
+                # Save the frame as a JPEG
+                frame.save(output_file_path, "JPEG")
+                print(f"Saved {output_file_path}")
                 
 
 
-source_folder = 'gifs_homer_simpson_resized_256'
+source_folder = 'gifs_homer_simpson_original'
 
-dest_folder = 'homer_simpson_single_images'
+dest_folder = 'homer_single_images'
 
 single_images(source_folder, dest_folder)
 
