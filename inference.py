@@ -88,7 +88,7 @@ images_to_generate = 1
 for prompt in prompts:
     # Generate latents for the given prompt
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=10, num_steps=200
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=10, num_steps=100
     )
     
     # Decode the latents to images
