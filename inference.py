@@ -16,6 +16,10 @@ grid_model.diffusion_model.load_weights("/content/drive/MyDrive/stable_diffusion
 grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_encoder_training/best_vae_decoder.h5")
 #grid_model.decoder.load_weights("/content/drive/MyDrive/stable_diffusion_4x4/decoder_model_scaled_linear/decoder_simpsons2.h5")
 
+# Print the summary of the decoder model
+print("\n=== Decoder Model Summary ===")
+grid_model.decoder.summary()
+
 #prompts = ["Grid image of close up of handsome happy male professional typing on mobile phone in good mood"]
 # prompts = ["grid image of homer cuddling a piglet"]
 # images_to_generate = 1
