@@ -34,3 +34,7 @@ simpson_dataset/homer_simpson_4x4_images copy 2
 
 
 *DS_Store
+
+*.gif
+*.png
+*.jpg

@@ -1,92 +1,216 @@
 from PIL import Image, ImageFilter
 import os
 
-def process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size = 4):
-    # Ensure the destination folders exist
+from PIL import Image, ImageFilter
+import os
+
+def process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size=4):
+    """
+    Processes GIFs:
+      1) Skips the first frame and processes the rest
+      2) Center-crops each frame to a square
+      3) Resizes the cropped square to target_size
+      4) Optionally applies a filter
+      5) Creates a grid (4x4, 2x2, or single images) from those frames
+    """
+
     if not os.path.exists(dest_folder):
         os.makedirs(dest_folder)
 
-    # Loop through all files in the source folder
     for file_name in os.listdir(source_folder):
         if file_name.endswith(".gif"):
-            # Construct full file path
             file_path = os.path.join(source_folder, file_name)
-            
 
             # Open the GIF
             with Image.open(file_path) as img:
-                # Create a list to hold the frames
                 frames = []
                 
-                # Skip the first frame and process the rest
                 try:
                     img.seek(1)  # Skip the first frame
                     while True:
-                        frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
-                        frame = frame.convert("RGB")  # Convert to RGB mode
+                        # Copy the current frame
+                        frame = img.copy()
+
+                        # Convert to RGB
+                        frame = frame.convert("RGB")
+
+                        # 1) (Optional) Center-crop to square
+                        width, height = frame.size
+                        min_dim = min(width, height)
+                        left = (width - min_dim) // 2
+                        top = (height - min_dim) // 2
+                        right = left + min_dim
+                        bottom = top + min_dim
+                        frame = frame.crop((left, top, right, bottom))
+                        
+                        # 2) Resize after cropping
+                        frame = frame.resize(target_size, Image.LANCZOS)
+
+                        # 3) (Optional) Apply a detail filter
                         frame = frame.filter(ImageFilter.DETAIL)
-                        # frame = frame.filter(ImageFilter.SHARPEN).filter(ImageFilter.SHARPEN)
+
                         frames.append(frame)
-                        img.seek(img.tell() + 1)  # Move to the next frame
+
+                        # Move to the next frame
+                        img.seek(img.tell() + 1)
+
                 except EOFError:
-                    print(f"Finished processing '{file_name}' with {len(frames)} frames (excluding first frame).")
-            # # Open the GIF
-            # with Image.open(file_path) as img:
-            #     # Create a list to hold the frames
-            #     frames = []
-                
-            #     # Try to extract the first 16 frames
-            #     try:
-            #         for i in range(16):
-            #             img.seek(i)
-            #             frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
-            #             frame = frame.convert("RGB")
-            #             frame = frame.filter(ImageFilter.SHARPEN)
-            #             frames.append(frame)
-            #     except EOFError:
-            #         print(f"Warning: '{file_name}' has less than 16 frames.")
+                    print(f"Finished processing '{file_name}' "
+                          f"with {len(frames)} frames (excluding first frame).")
 
-
+                # Build grids / save frames
                 if frames:
                     if grid_size == 4:
                         # Create 4x4 grid image
-                        grid_image = Image.new('RGB', (target_size[0] * grid_size, target_size[1] * grid_size))
+                        grid_image = Image.new(
+                            'RGB',
+                            (target_size[0] * grid_size, target_size[1] * grid_size)
+                        )
                         for i in range(grid_size * grid_size):
-                            frame = frames[i % len(frames)]  # Cycle through frames if fewer than 16
-                            x = i % grid_size * target_size[0]
-                            y = i // grid_size * target_size[1]
+                            frame = frames[i % len(frames)]
+                            x = (i % grid_size) * target_size[0]
+                            y = (i // grid_size) * target_size[1]
                             grid_image.paste(frame, (x, y))
                         
-                        # Save 4x4 grid image
-                        grid_output_path = os.path.join(dest_folder, "4x4_grid_image_of_" + file_name.replace('.gif', '.jpg'))
+                        # Save
+                        grid_output_path = os.path.join(
+                            dest_folder,
+                            "4x4_grid_image_of_" + file_name.replace('.gif', '.jpg')
+                        )
                         grid_image.save(grid_output_path, format='JPEG')
                         print(f"4x4 Grid image saved to {grid_output_path}")
 
                     elif grid_size == 2:
-                        # Select 4 evenly spaced frames
-                        frame_indices = [0, 4, 8, 12] if len(frames) == 16 else [0, len(frames) // 3, 2 * len(frames) // 3, len(frames) - 1]
+                        # Select 4 frames from the list
+                        if len(frames) == 16:
+                            frame_indices = [0, 4, 8, 12]
+                        else:
+                            frame_indices = [
+                                0,
+                                len(frames) // 3,
+                                2 * len(frames) // 3,
+                                len(frames) - 1
+                            ]
                         selected_frames = [frames[i] for i in frame_indices]
 
-                        # Create 2x2 grid image
-                        grid_image = Image.new('RGB', (target_size[0] * grid_size, target_size[1] * grid_size))
-                        for i in range(grid_size * grid_size):
-                            frame = selected_frames[i]
-                            x = i % grid_size * target_size[0]
-                            y = i // grid_size * target_size[1]
+                        # Build 2x2 grid
+                        grid_image = Image.new(
+                            'RGB',
+                            (target_size[0] * grid_size, target_size[1] * grid_size)
+                        )
+                        for i, frame in enumerate(selected_frames):
+                            x = (i % grid_size) * target_size[0]
+                            y = (i // grid_size) * target_size[1]
                             grid_image.paste(frame, (x, y))
-                        
-                        # Save 2x2 grid image
-                        grid_output_path = os.path.join(dest_folder, "2x2_grid_image_of_" + file_name.replace('.gif', '.jpg'))
+
+                        # Save
+                        grid_output_path = os.path.join(
+                            dest_folder,
+                            "2x2_grid_image_of_" + file_name.replace('.gif', '.jpg')
+                        )
                         grid_image.save(grid_output_path, format='JPEG')
                         print(f"2x2 Grid image saved to {grid_output_path}")
 
                     elif grid_size == 1:
                         # Save each frame as an individual 512x512 image
                         for i, frame in enumerate(frames):
-                            resized_frame = frame.resize((512, 512), Image.LANCZOS).convert("RGB")  # Convert to RGB
-                            single_frame_output_path = os.path.join(dest_folder, f"frame_{i + 1}_of_{file_name.replace('.gif', '.jpg')}")
+                            # Further upscale if needed:
+                            resized_frame = frame.resize((512, 512), Image.LANCZOS)
+
+                            single_frame_output_path = os.path.join(
+                                dest_folder,
+                                f"frame_{i + 1}_of_{file_name.replace('.gif', '.jpg')}"
+                            )
                             resized_frame.save(single_frame_output_path, format='JPEG')
                             print(f"Single frame image saved to {single_frame_output_path}")
+
+
+# def process_gifs(source_folder, dest_folder, target_size=(128, 128), grid_size = 4):
+#     # Ensure the destination folders exist
+#     if not os.path.exists(dest_folder):
+#         os.makedirs(dest_folder)
+
+#     # Loop through all files in the source folder
+#     for file_name in os.listdir(source_folder):
+#         if file_name.endswith(".gif"):
+#             # Construct full file path
+#             file_path = os.path.join(source_folder, file_name)
+            
+
+#             # Open the GIF
+#             with Image.open(file_path) as img:
+#                 # Create a list to hold the frames
+#                 frames = []
+                
+#                 # Skip the first frame and process the rest
+#                 try:
+#                     img.seek(1)  # Skip the first frame
+#                     while True:
+#                         frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
+#                         frame = frame.convert("RGB")  # Convert to RGB mode
+#                         frame = frame.filter(ImageFilter.DETAIL)
+#                         # frame = frame.filter(ImageFilter.SHARPEN).filter(ImageFilter.SHARPEN)
+#                         frames.append(frame)
+#                         img.seek(img.tell() + 1)  # Move to the next frame
+#                 except EOFError:
+#                     print(f"Finished processing '{file_name}' with {len(frames)} frames (excluding first frame).")
+#             # # Open the GIF
+#             # with Image.open(file_path) as img:
+#             #     # Create a list to hold the frames
+#             #     frames = []
+                
+#             #     # Try to extract the first 16 frames
+#             #     try:
+#             #         for i in range(16):
+#             #             img.seek(i)
+#             #             frame = img.copy().resize(target_size, Image.LANCZOS)  # Resize each frame
+#             #             frame = frame.convert("RGB")
+#             #             frame = frame.filter(ImageFilter.SHARPEN)
+#             #             frames.append(frame)
+#             #     except EOFError:
+#             #         print(f"Warning: '{file_name}' has less than 16 frames.")
+
+
+#                 if frames:
+#                     if grid_size == 4:
+#                         # Create 4x4 grid image
+#                         grid_image = Image.new('RGB', (target_size[0] * grid_size, target_size[1] * grid_size))
+#                         for i in range(grid_size * grid_size):
+#                             frame = frames[i % len(frames)]  # Cycle through frames if fewer than 16
+#                             x = i % grid_size * target_size[0]
+#                             y = i // grid_size * target_size[1]
+#                             grid_image.paste(frame, (x, y))
+                        
+#                         # Save 4x4 grid image
+#                         grid_output_path = os.path.join(dest_folder, "4x4_grid_image_of_" + file_name.replace('.gif', '.jpg'))
+#                         grid_image.save(grid_output_path, format='JPEG')
+#                         print(f"4x4 Grid image saved to {grid_output_path}")
+
+#                     elif grid_size == 2:
+#                         # Select 4 evenly spaced frames
+#                         frame_indices = [0, 4, 8, 12] if len(frames) == 16 else [0, len(frames) // 3, 2 * len(frames) // 3, len(frames) - 1]
+#                         selected_frames = [frames[i] for i in frame_indices]
+
+#                         # Create 2x2 grid image
+#                         grid_image = Image.new('RGB', (target_size[0] * grid_size, target_size[1] * grid_size))
+#                         for i in range(grid_size * grid_size):
+#                             frame = selected_frames[i]
+#                             x = i % grid_size * target_size[0]
+#                             y = i // grid_size * target_size[1]
+#                             grid_image.paste(frame, (x, y))
+                        
+#                         # Save 2x2 grid image
+#                         grid_output_path = os.path.join(dest_folder, "2x2_grid_image_of_" + file_name.replace('.gif', '.jpg'))
+#                         grid_image.save(grid_output_path, format='JPEG')
+#                         print(f"2x2 Grid image saved to {grid_output_path}")
+
+#                     elif grid_size == 1:
+#                         # Save each frame as an individual 512x512 image
+#                         for i, frame in enumerate(frames):
+#                             resized_frame = frame.resize((512, 512), Image.LANCZOS).convert("RGB")  # Convert to RGB
+#                             single_frame_output_path = os.path.join(dest_folder, f"frame_{i + 1}_of_{file_name.replace('.gif', '.jpg')}")
+#                             resized_frame.save(single_frame_output_path, format='JPEG')
+#                             print(f"Single frame image saved to {single_frame_output_path}")
 
 
 

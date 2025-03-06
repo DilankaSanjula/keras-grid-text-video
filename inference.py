@@ -81,6 +81,8 @@ prompts = [
     "grid_image_of_homer_smoking",
     "grid_image_of_homer_staring_at_his_tummy_on_bed_wearing_a_red_pant",
     "grid_image_of_homer_vacation_floating_in_water",
+    "grid_image_of_homer_simpson_rotates_on_a_chair_in_a_control_room",
+    "grid_image_of_homer_running_on_treadmill",
 ]
 
 images_to_generate = 1
@@ -88,7 +90,7 @@ images_to_generate = 1
 for prompt in prompts:
     # Generate latents for the given prompt
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=10, num_steps=100
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=5, num_steps=100
     )
     
     # Decode the latents to images
