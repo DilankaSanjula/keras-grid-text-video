@@ -17,9 +17,14 @@ def print_model_details(model, model_name):
 # Load or initialize models
 image_encoder = ImageEncoder(download_weights=False)  # Assuming the encoder weights are managed separately
 
+image_decoder = Decoder(RESOLUTION, RESOLUTION)
+
+
 diffusion_model = DiffusionModel(RESOLUTION, RESOLUTION, MAX_PROMPT_LENGTH, download_weights=False)
 # Print details of the image encoder
 print_model_details(image_encoder, "Image Encoder")
 
 # Print details of the diffusion model
 print_model_details(diffusion_model, "Diffusion Model")
+
+print_model_details(image_decoder, "Decoder Model")
