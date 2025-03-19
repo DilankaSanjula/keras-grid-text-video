@@ -43,6 +43,7 @@ prompts = [
     "grid_image_of_homer_escaping_fire",
     "grid_image_of_homer_frowning_and_runs_his_eyes_sideways.jpg",
     "grid_image_of_homer_hammering_a_nail_on_a_roof",
+    "grid_image_of_homer_in_a_ballerina_dress_and_rotating",
 ]
 
 images_to_generate = 1
@@ -56,7 +57,12 @@ inference_times = []
 memory_usages = []
 gpu_memory_usages = []
 
-for prompt in prompts:
+for i, prompt in enumerate(prompts):
+    # Skip the first prompt for calculations
+    if i == 0:
+        print(f"Skipping first prompt: {prompt}")
+        continue
+
     # Measure start time
     start_time = time.time()
 
@@ -106,22 +112,22 @@ for prompt in prompts:
     gpu_memory_usages.append(gpu_memory_usage)
     total_gpu_memory_usage += gpu_memory_usage
 
-    for i, image_array in enumerate(generated_images):
+    for j, image_array in enumerate(generated_images):
         img = Image.fromarray(image_array)
 
         # Save the image with a filename reflecting the prompt
         sanitized_prompt = "".join([c if c.isalnum() or c in " _-" else "_" for c in prompt])  # Sanitize the prompt for file name
-        file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/dataset/inferenced_50/{sanitized_prompt}_{i}.png"
+        file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/dataset/inferenced_50/{sanitized_prompt}_{j}.png"
 
         img.save(file_path)
         print(f"Saved: {file_path}, Inference Time: {inference_time:.2f} seconds, Memory Usage: {memory_usage:.2f} MB, GPU Memory Usage: {gpu_memory_usage:.2f} MB")
 
-print(f"\nTotal Inference Time for {num_prompts} prompts: {total_inference_time:.2f} seconds")
-print(f"Average Inference Time per prompt: {total_inference_time / num_prompts:.2f} seconds")
-print(f"Total Memory Usage for {num_prompts} prompts: {total_memory_usage:.2f} MB")
-print(f"Average Memory Usage per prompt: {total_memory_usage / num_prompts:.2f} MB")
-print(f"Total GPU Memory Usage for {num_prompts} prompts: {total_gpu_memory_usage:.2f} MB")
-print(f"Average GPU Memory Usage per prompt: {total_gpu_memory_usage / num_prompts:.2f} MB")
+print(f"\nTotal Inference Time for {num_prompts - 1} prompts: {total_inference_time:.2f} seconds")
+print(f"Average Inference Time per prompt: {total_inference_time / (num_prompts - 1):.2f} seconds")
+print(f"Total Memory Usage for {num_prompts - 1} prompts: {total_memory_usage:.2f} MB")
+print(f"Average Memory Usage per prompt: {total_memory_usage / (num_prompts - 1):.2f} MB")
+print(f"Total GPU Memory Usage for {num_prompts - 1} prompts: {total_gpu_memory_usage:.2f} MB")
+print(f"Average GPU Memory Usage per prompt: {total_gpu_memory_usage / (num_prompts - 1):.2f} MB")
 
 # Plotting Inference Time vs. Memory Usage
 plt.figure(figsize=(8, 6))
