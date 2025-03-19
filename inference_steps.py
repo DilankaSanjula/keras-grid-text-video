@@ -57,7 +57,7 @@ inference_times = []
 memory_usages = []
 gpu_memory_usages = []
 
-prompt = "grid_image_of_homer_in_a_ballerina_dress_and_rotating",
+prompt = "grid_image_of_homer_in_a_ballerina_dress_and_rotating"
 for i in range(10):
 
     # Generate latents for the given prompt
@@ -78,4 +78,3 @@ for i in range(10):
 
         img.save(file_path)
         print(f"Saved: {file_path}")
-
