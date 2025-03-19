@@ -83,7 +83,7 @@ for i, prompt in enumerate(prompts):
 
     # Generate latents for the given prompt
     generated_latents = grid_model.text_to_latent(
-        prompt, batch_size=images_to_generate, unconditional_guidance_scale=5, num_steps=5
+        prompt, batch_size=images_to_generate, unconditional_guidance_scale=5, num_steps=1
     )
 
     # Decode the latents to images
