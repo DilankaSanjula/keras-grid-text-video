@@ -43,12 +43,13 @@ prompts = [
 images_to_generate = 1
 total_inference_time = 0
 total_memory_usage = 0
+total_gpu_memory_usage = 0
 num_prompts = len(prompts)
 num_steps = 100
 
 inference_times = []
 memory_usages = []
-gpu_usages = []
+gpu_memory_usages = []
 
 for prompt in prompts:
     # Measure start time
@@ -58,12 +59,13 @@ for prompt in prompts:
     process = psutil.Process(os.getpid())
     initial_memory = process.memory_info().rss / 1024 / 1024  # in MB
 
-    # Get initial GPU utilization
+    # Get initial GPU memory usage
     if gpu_available and gpus:
         handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-        initial_gpu_util = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
+        initial_gpu_mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        initial_gpu_mem_used = initial_gpu_mem_info.used / 1024 / 1024  # in MB
     else:
-        initial_gpu_util = 0
+        initial_gpu_mem_used = 0
 
     # Measure inference start time
     inference_start_time = time.time()
@@ -72,8 +74,6 @@ for prompt in prompts:
     generated_latents = grid_model.text_to_latent(
         prompt, batch_size=images_to_generate, unconditional_guidance_scale=5, num_steps=100
     )
-
-    
 
     # Decode the latents to images
     generated_images = grid_model.latent_to_image(generated_latents)
@@ -88,16 +88,18 @@ for prompt in prompts:
     memory_usage = final_memory - initial_memory  # Approximate memory used by the generation process
     total_memory_usage += memory_usage
 
-    # Get final GPU utilization
+    # Get final GPU memory usage
     if gpu_available and gpus:
-        final_gpu_util = pynvml.nvmlDeviceGetUtilizationRates(handle).gpu
-        gpu_usage = final_gpu_util  # Simplified: assumes GPU usage is high during inference
+        final_gpu_mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+        final_gpu_mem_used = final_gpu_mem_info.used / 1024 / 1024  # in MB
+        gpu_memory_usage = final_gpu_mem_used - initial_gpu_mem_used  # Approximate GPU memory used
     else:
-        gpu_usage = 0
+        gpu_memory_usage = 0
 
     inference_times.append(inference_time)
     memory_usages.append(memory_usage)
-    gpu_usages.append(gpu_usage)
+    gpu_memory_usages.append(gpu_memory_usage)
+    total_gpu_memory_usage += gpu_memory_usage
 
     for i, image_array in enumerate(generated_images):
         img = Image.fromarray(image_array)
@@ -107,12 +109,14 @@ for prompt in prompts:
         file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/dataset/inferenced/{sanitized_prompt}_{i}.png"
 
         # img.save(file_path)
-        print(f"Saved: {file_path}, Inference Time: {inference_time:.2f} seconds, Memory Usage: {memory_usage:.2f} MB, GPU Usage: {gpu_usage}%")
+        print(f"Saved: {file_path}, Inference Time: {inference_time:.2f} seconds, Memory Usage: {memory_usage:.2f} MB, GPU Memory Usage: {gpu_memory_usage:.2f} MB")
 
 print(f"\nTotal Inference Time for {num_prompts} prompts: {total_inference_time:.2f} seconds")
 print(f"Average Inference Time per prompt: {total_inference_time / num_prompts:.2f} seconds")
 print(f"Total Memory Usage for {num_prompts} prompts: {total_memory_usage:.2f} MB")
 print(f"Average Memory Usage per prompt: {total_memory_usage / num_prompts:.2f} MB")
+print(f"Total GPU Memory Usage for {num_prompts} prompts: {total_gpu_memory_usage:.2f} MB")
+print(f"Average GPU Memory Usage per prompt: {total_gpu_memory_usage / num_prompts:.2f} MB")
 
 # Plotting Inference Time vs. Memory Usage
 plt.figure(figsize=(8, 6))
