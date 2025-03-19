@@ -57,7 +57,7 @@ inference_times = []
 memory_usages = []
 gpu_memory_usages = []
 
-prompt = "grid_image_of_homer_in_a_ballerina_dress_and_rotating"
+prompt = "grid_image_of_homer_frowning_and_runs_his_eyes_sideways.jpg"
 for i in range(10):
 
     # Generate latents for the given prompt
