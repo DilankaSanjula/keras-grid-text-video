@@ -38,6 +38,11 @@ prompts = [
     "grid_image_of_homer_cutting_hair_with_large_scissors",
     "grid_image_of_homer_doing_ninja_moves_using_a_batton.jpg",
     "grid_image_of_homer_doing_weights_exercises_on_a_bench_press.jpg",
+    "grid_image_of_homer_drooling.jpg",
+    "grid_image_of_homer_eating_a_pink_doughnut.jpg",
+    "grid_image_of_homer_escaping_fire",
+    "grid_image_of_homer_frowning_and_runs_his_eyes_sideways.jpg",
+    "grid_image_of_homer_hammering_a_nail_on_a_roof",
 ]
 
 images_to_generate = 1
