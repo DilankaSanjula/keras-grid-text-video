@@ -45,7 +45,7 @@ total_inference_time = 0
 total_memory_usage = 0
 total_gpu_memory_usage = 0
 num_prompts = len(prompts)
-num_steps = 100
+num_steps = 50
 
 inference_times = []
 memory_usages = []
@@ -106,9 +106,9 @@ for prompt in prompts:
 
         # Save the image with a filename reflecting the prompt
         sanitized_prompt = "".join([c if c.isalnum() or c in " _-" else "_" for c in prompt])  # Sanitize the prompt for file name
-        file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/dataset/inferenced/{sanitized_prompt}_{i}.png"
+        file_path = f"/content/drive/MyDrive/stable_diffusion_4x4/dataset/inferenced_50/{sanitized_prompt}_{i}.png"
 
-        # img.save(file_path)
+        img.save(file_path)
         print(f"Saved: {file_path}, Inference Time: {inference_time:.2f} seconds, Memory Usage: {memory_usage:.2f} MB, GPU Memory Usage: {gpu_memory_usage:.2f} MB")
 
 print(f"\nTotal Inference Time for {num_prompts} prompts: {total_inference_time:.2f} seconds")
