@@ -156,7 +156,7 @@ class CustomModelCheckpoint(tf.keras.callbacks.Callback):
 
 # Define the checkpoint directory and frequency
 #ckpt_dir = '/content/drive/MyDrive/models/vae_diffusion_model_2x2'
-ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_7'
+ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_8'
 save_frequency = 50  # Save every 10 epochs
 
 # Fine-tuning
