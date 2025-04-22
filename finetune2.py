@@ -172,7 +172,7 @@ ckpt_dir = '/content/drive/MyDrive/stable_diffusion_4x4/diffusion_model_stage_8'
 save_frequency = 50  # Save every 10 epochs
 
 # Fine-tuning
-epochs = 50  # Adjust the number of epochs as needed
+epochs = 500  # Adjust the number of epochs as needed
 custom_ckpt_callback = CustomModelCheckpoint(ckpt_dir=ckpt_dir, save_freq=save_frequency)
 
 
@@ -228,7 +228,7 @@ reduce_lr_on_plateau = ReduceLROnPlateau(
 # Callback: Early stopping (optional)
 early_stopping = EarlyStopping(
     monitor='loss',          # Monitor training loss
-    patience=20,             # Stop training if no improvement for 10 epochs
+    patience=30,             # Stop training if no improvement for 10 epochs
     verbose=1
 )
 
