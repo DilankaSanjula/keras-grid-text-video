@@ -148,10 +148,10 @@ vae = tf.keras.Model(
 noise_scheduler = NoiseScheduler(beta_schedule="scaled_linear")
 
 
-#Load the pretrained weights
-if os.path.exists(pretrained_weights_path):
-    diffusion_model.load_weights(pretrained_weights_path)
-    print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
+# #Load the pretrained weights
+# if os.path.exists(pretrained_weights_path):
+#     diffusion_model.load_weights(pretrained_weights_path)
+#     print(f"Pretrained diffusion model weights loaded from {pretrained_weights_path}")
 
 
 class CustomModelCheckpoint(tf.keras.callbacks.Callback):
